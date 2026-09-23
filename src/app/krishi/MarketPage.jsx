@@ -6,7 +6,7 @@ import { KrishiFooter } from "./Footer.jsx";
 import { AnimatedBackground } from "./AnimatedBackground.jsx";
 import { marketCrops, demandPie } from "./data.js";
 
-function CropDetail({ id, navigate }) {
+function CropDetail({ id, navigate, from }) {
   const c = marketCrops.find(x => x.id === id);
   if (!c) return null;
 
@@ -20,10 +20,10 @@ function CropDetail({ id, navigate }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <KrishiNavbar navigate={navigate} currentPage="market" />
+      <KrishiNavbar navigate={navigate} currentPage={from === "home" ? "home" : "market"} />
       <div className="max-w-5xl mx-auto px-6 pt-28 pb-20">
-        <button onClick={() => navigate("market")} className="flex items-center gap-2 text-sm font-semibold text-[#5A6B58] hover:text-[#1B5E38] transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> Back to Market Insight
+        <button onClick={() => navigate(from === "home" ? "home" : "market")} className="flex items-center gap-2 text-sm font-semibold text-[#5A6B58] hover:text-[#1B5E38] transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" /> {from === "home" ? "Back to Home" : "Back to Market Insight"}
         </button>
 
         <div className="bg-[#071A0C] rounded-3xl overflow-hidden mb-8">
@@ -111,14 +111,14 @@ function CropDetail({ id, navigate }) {
   );
 }
 
-export function MarketPage({ navigate, cropId }) {
+export function MarketPage({ navigate, cropId, from }) {
   const [selected, setSelected] = useState(cropId || null);
 
   useEffect(() => {
     setSelected(cropId || null);
   }, [cropId]);
 
-  if (selected) return <CropDetail id={selected} navigate={navigate} />;
+  if (selected) return <CropDetail id={selected} navigate={navigate} from={from} />;
 
   const OVERVIEW = [
     { label: "Avg. Market Price", value: "₹2,442", change: "+3.8%", up: true, icon: TrendingUp, bg: "bg-emerald-50", col: "text-[#1B5E38]" },
@@ -226,42 +226,6 @@ export function MarketPage({ navigate, cropId }) {
           </ResponsiveContainer>
         </div>
 
-        {/* Crop cards */}
-        <div>
-          <h2 className="text-2xl font-extrabold text-[#132B1A] mb-6 font-[Plus_Jakarta_Sans]">Crop Market Cards — Click to Analyse</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {marketCrops.map(c => (
-              <button key={c.id} onClick={() => { setSelected(c.id); if (navigate) navigate("crop-detail", { cropId: c.id, id: c.id }); }} className="group text-left bg-white border border-[#1B5E38]/10 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-green-900/8 hover:-translate-y-1 transition-all duration-300">
-                <div className="h-40 overflow-hidden relative">
-                  <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-                    <span className="text-white font-bold">{c.emoji} {c.name}</span>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${c.demand === "High" ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"}`}>{c.demand} Demand</span>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="text-2xl font-extrabold text-[#132B1A] font-[Plus_Jakarta_Sans]">{c.currentPrice}</div>
-                      <div className="text-xs text-[#5A6B58] mt-0.5">Current · {c.category}</div>
-                    </div>
-                    <div className={`flex items-center gap-1 text-sm font-bold ${c.up ? "text-emerald-600" : "text-rose-600"}`}>
-                      {c.up ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}{c.change}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-[#5A6B58] mb-3">
-                    <span>Supply: {c.supply}</span>
-                    <span>Predict: <span className="font-bold text-violet-600">{c.prediction}</span></span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm font-bold text-[#1B5E38] group-hover:gap-2 transition-all">
-                    View Full Analysis →
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
       <KrishiFooter navigate={navigate} />
     </div>

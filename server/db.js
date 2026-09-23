@@ -17,9 +17,9 @@ export async function initDatabase() {
   const database = process.env.MYSQL_DATABASE || 'farmo_ai_db';
 
   const credentialPairs = [
-    { user: process.env.MYSQL_USER || 'root', password: process.env.MYSQL_PASSWORD || 'aswin#123456789' },
-    { user: 'root', password: 'aswin#123456789' },
+    { user: process.env.MYSQL_USER || 'root', password: process.env.MYSQL_PASSWORD || 'admin@123456789' },
     { user: 'root', password: 'admin@123456789' },
+    { user: 'root', password: 'aswin#123456789' },
     { user: 'farmer', password: 'farmer123' },
     { user: 'root', password: '' },
     { user: 'root', password: 'root' },
@@ -177,7 +177,44 @@ async function createMysqlTables() {
       )
     `);
 
-    // Create Unified All-in-One Master Table & View
+    await mysqlPool.query(`
+      CREATE TABLE IF NOT EXISTS farmer_crops (
+        id VARCHAR(36) PRIMARY KEY,
+        farmer_id VARCHAR(36) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        variety VARCHAR(255),
+        area DECIMAL(6, 2) NOT NULL DEFAULT 1.0,
+        health INT DEFAULT 90,
+        stage VARCHAR(100) DEFAULT 'Planning',
+        next_action TEXT,
+        image_url LONGTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_farmer_crop (farmer_id, name, variety)
+      )
+    `);
+
+    await mysqlPool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id VARCHAR(36) PRIMARY KEY,
+        farmer_id VARCHAR(36) NOT NULL,
+        farmer_name VARCHAR(255) NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        variety VARCHAR(255) DEFAULT 'Standard',
+        quantity_acres DECIMAL(6, 2) DEFAULT 1.0,
+        price_per_unit DECIMAL(10, 2) DEFAULT 0.0,
+        health_rating INT DEFAULT 90,
+        growth_stage VARCHAR(100) DEFAULT 'Planning',
+        location_district VARCHAR(100) NOT NULL,
+        status ENUM('Available', 'Sold', 'Pending') DEFAULT 'Available',
+        image_url LONGTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_farmer_product (farmer_id, product_name, variety)
+      )
+    `);
+
+    // Create Unified All-in-One Master Table & Views
     await mysqlPool.query(`
       CREATE TABLE IF NOT EXISTS unified_farmer_products (
         id VARCHAR(36) PRIMARY KEY,
@@ -209,42 +246,41 @@ async function createMysqlTables() {
       CREATE OR REPLACE VIEW view_unified_all_in_one AS
       SELECT 
         u.id AS user_id,
+        u.full_name AS user_name,
         u.full_name AS farmer_name,
         u.email,
         u.phone,
         u.role,
-        u.district,
+        COALESCE(p.location_district, f.district, u.district) AS district,
         f.soil_type,
-        f.status AS account_status,
-        fc.id AS product_id,
-        fc.name AS crop_name,
-        fc.variety,
-        fc.area AS crop_acres,
-        fc.health AS health_percentage,
-        fc.stage AS growth_stage,
+        COALESCE(f.status, 'active') AS account_status,
+        COALESCE(p.id, fc.id) AS product_id,
+        COALESCE(p.product_name, fc.name) AS product_name,
+        COALESCE(p.product_name, fc.name) AS crop_name,
+        COALESCE(p.variety, fc.variety) AS variety,
+        COALESCE(p.quantity_acres, fc.area) AS quantity_acres,
+        COALESCE(p.quantity_acres, fc.area) AS crop_acres,
+        p.price_per_unit,
+        COALESCE(p.health_rating, fc.health, 90) AS health_rating,
+        COALESCE(p.health_rating, fc.health, 90) AS health_percentage,
+        COALESCE(p.growth_stage, fc.stage, 'Planning') AS growth_stage,
+        COALESCE(p.location_district, u.district) AS location_district,
+        COALESCE(p.status, 'Available') AS status,
+        COALESCE(p.status, 'Available') AS product_status,
+        COALESCE(p.image_url, fc.image_url) AS image_url,
         fc.next_action AS ai_recommendation,
-        fc.image_url,
+        COALESCE(p.created_at, fc.created_at) AS product_created_at,
         u.created_at AS registered_at
       FROM users u
       LEFT JOIN farmers f ON u.id = f.id
-      LEFT JOIN farmer_crops fc ON u.id = fc.farmer_id
-      ORDER BY u.created_at DESC, fc.created_at DESC
+      LEFT JOIN products p ON u.id = p.farmer_id OR u.email = p.farmer_id
+      LEFT JOIN farmer_crops fc ON (u.id = fc.farmer_id OR u.email = fc.farmer_id) AND (p.id = fc.id OR (p.id IS NULL AND fc.id IS NOT NULL))
+      ORDER BY u.created_at DESC, COALESCE(p.created_at, fc.created_at) DESC
     `);
 
     await mysqlPool.query(`
-      CREATE TABLE IF NOT EXISTS farmer_crops (
-        id VARCHAR(36) PRIMARY KEY,
-        farmer_id VARCHAR(36) NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        variety VARCHAR(255),
-        area DECIMAL(6, 2) NOT NULL DEFAULT 1.0,
-        health INT DEFAULT 90,
-        stage VARCHAR(100) DEFAULT 'Planning',
-        next_action TEXT,
-        image_url LONGTEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
-      )
+      CREATE OR REPLACE VIEW view_unified_all_in_one6 AS
+      SELECT * FROM view_unified_all_in_one
     `);
   } catch (e) {
     console.warn('MySQL table initialization warning:', e.message);
@@ -264,7 +300,7 @@ export async function query(sql, params = []) {
       .replace(/ENUM\([^)]+\)/gi, 'TEXT')
       .replace(/DECIMAL\([^)]+\)/gi, 'REAL')
       .replace(/VARCHAR\([^)]+\)/gi, 'TEXT')
-      .replace(/ON DUPLICATE KEY UPDATE.*/gi, '');
+      .replace(/ON DUPLICATE KEY UPDATE[\s\S]*/gi, '');
 
     const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT');
 
@@ -360,6 +396,59 @@ async function seedSqliteTables() {
       image_url TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      farmer_id TEXT NOT NULL,
+      farmer_name TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      variety TEXT DEFAULT 'Standard',
+      quantity_acres REAL DEFAULT 1.0,
+      price_per_unit REAL DEFAULT 0.0,
+      health_rating INTEGER DEFAULT 90,
+      growth_stage TEXT DEFAULT 'Planning',
+      location_district TEXT NOT NULL,
+      status TEXT DEFAULT 'Available',
+      image_url TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE VIEW IF NOT EXISTS view_unified_all_in_one AS
+    SELECT 
+      u.id AS user_id,
+      u.full_name AS user_name,
+      u.full_name AS farmer_name,
+      u.email,
+      u.phone,
+      u.role,
+      COALESCE(p.location_district, f.district, u.district) AS district,
+      f.soil_type,
+      COALESCE(f.status, 'active') AS account_status,
+      COALESCE(p.id, fc.id) AS product_id,
+      COALESCE(p.product_name, fc.name) AS product_name,
+      COALESCE(p.product_name, fc.name) AS crop_name,
+      COALESCE(p.variety, fc.variety) AS variety,
+      COALESCE(p.quantity_acres, fc.area) AS quantity_acres,
+      COALESCE(p.quantity_acres, fc.area) AS crop_acres,
+      p.price_per_unit,
+      COALESCE(p.health_rating, fc.health, 90) AS health_rating,
+      COALESCE(p.health_rating, fc.health, 90) AS health_percentage,
+      COALESCE(p.growth_stage, fc.stage, 'Planning') AS growth_stage,
+      COALESCE(p.location_district, u.district) AS location_district,
+      COALESCE(p.status, 'Available') AS status,
+      COALESCE(p.status, 'Available') AS product_status,
+      COALESCE(p.image_url, fc.image_url) AS image_url,
+      fc.next_action AS ai_recommendation,
+      COALESCE(p.created_at, fc.created_at) AS product_created_at,
+      u.created_at AS registered_at
+    FROM users u
+    LEFT JOIN farmers f ON u.id = f.id
+    LEFT JOIN products p ON u.id = p.farmer_id OR u.email = p.farmer_id
+    LEFT JOIN farmer_crops fc ON (u.id = fc.farmer_id OR u.email = fc.farmer_id) AND (p.id = fc.id OR (p.id IS NULL AND fc.id IS NOT NULL))
+    ORDER BY u.created_at DESC;
+
+    CREATE VIEW IF NOT EXISTS view_unified_all_in_one6 AS
+    SELECT * FROM view_unified_all_in_one;
   `;
 
   return new Promise((resolve, reject) => {

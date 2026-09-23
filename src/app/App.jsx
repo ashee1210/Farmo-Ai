@@ -12,9 +12,9 @@ import { RegisterPage } from "./components/RegisterPage";
 
 export default function App() {
   const [route, setRoute] = useState(() => {
-    // 1. Check saved route in localStorage
+    // 1. Check saved route in sessionStorage (tab session)
     try {
-      const savedRoute = localStorage.getItem("krishi_current_route");
+      const savedRoute = sessionStorage.getItem("krishi_current_route");
       if (savedRoute) {
         const parsed = JSON.parse(savedRoute);
         if (parsed && parsed.page) return parsed;
@@ -41,7 +41,8 @@ export default function App() {
     const newRoute = { page, ...params };
     setRoute(newRoute);
     try {
-      localStorage.setItem("krishi_current_route", JSON.stringify(newRoute));
+      sessionStorage.setItem("krishi_current_route", JSON.stringify(newRoute));
+      localStorage.removeItem("krishi_current_route");
     } catch (e) {}
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -52,7 +53,7 @@ export default function App() {
   if (page === "features")       return <FeaturesPage navigate={navigate} />;
   if (page === "feature-detail") return <FeaturesPage navigate={navigate} featureId={route.featureId} />;
   if (page === "market")         return <MarketPage navigate={navigate} />;
-  if (page === "crop-detail")    return <MarketPage navigate={navigate} cropId={route.cropId || route.id} />;
+  if (page === "crop-detail")    return <MarketPage navigate={navigate} cropId={route.cropId || route.id} from={route.from} />;
   if (page === "login")          return <KrishiLoginPage navigate={navigate} />;
   if (page === "pricing")        return <PricingPage navigate={navigate} />;
   if (page === "contact")        return <ContactPage navigate={navigate} />;

@@ -9,7 +9,7 @@ const DISTRICTS = [
 
 export function RegisterPage({ onLogin, onBack }) {
   const [step, setStep] = useState(1);
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("farmer");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -17,8 +17,8 @@ export function RegisterPage({ onLogin, onBack }) {
     district: "",
     password: "",
     confirm: "",
-    farmSize: "",
-    primaryCrop: "",
+    farmSize: "1–5 acres",
+    primaryCrop: "Paddy (Jyothi)",
   });
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -32,9 +32,12 @@ export function RegisterPage({ onLogin, onBack }) {
 
   const handleStep1 = async (e) => {
     e.preventDefault();
-    if (!role) { setError("Please select your account type."); return; }
     if (!form.name.trim()) { setError("Full name is required."); return; }
     if (!form.email.trim()) { setError("Email is required."); return; }
+    if (form.email.trim().toLowerCase() === "admin@gmail.com") {
+      setError("The email 'admin@gmail.com' is reserved for system administrator access. Admin accounts cannot be created.");
+      return;
+    }
     if (!form.district) { setError("Please select your district."); return; }
     setError("");
     setStep(2);
@@ -42,6 +45,10 @@ export function RegisterPage({ onLogin, onBack }) {
 
   const handleStep2 = async (e) => {
     e.preventDefault();
+    if (form.email.trim().toLowerCase() === "admin@gmail.com") {
+      setError("The email 'admin@gmail.com' is reserved for system administrator access. Admin accounts cannot be created.");
+      return;
+    }
     if (form.password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (form.password !== form.confirm) { setError("Passwords do not match."); return; }
     setError("");
@@ -53,11 +60,11 @@ export function RegisterPage({ onLogin, onBack }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          email: form.email,
+          email: form.email.trim().toLowerCase(),
           password: form.password,
           phone: form.phone,
           district: form.district,
-          role: role.toLowerCase() || "farmer",
+          role: "farmer",
           crop: form.primaryCrop || "Paddy (Jyothi)",
           acres: form.farmSize || 1.0,
         })
@@ -73,7 +80,7 @@ export function RegisterPage({ onLogin, onBack }) {
           district: form.district,
           crop: form.primaryCrop || "Paddy (Jyothi)",
           acres: form.farmSize || "4.5",
-          role: role.toLowerCase() || "farmer"
+          role: "farmer"
         }));
         setSubmitted(true);
         setTimeout(() => {
@@ -204,35 +211,14 @@ export function RegisterPage({ onLogin, onBack }) {
             {/* ── STEP 1 ── */}
             {step === 1 && (
               <form onSubmit={handleStep1} className="space-y-5">
-                {/* Role selector */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#132B1A] mb-2">
-                    I am a…
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { key: "farmer", label: "Farmer", icon: Sprout, sub: "Access AI crop tools" },
-                      { key: "admin", label: "Admin / Staff", icon: Shield, sub: "Manage platform" },
-                    ].map(({ key, label, icon: Icon, sub }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setRole(key)}
-                        className={`flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
-                          role === key
-                            ? "border-[#1B5E38] bg-[#1B5E38]/5"
-                            : "border-border bg-white hover:border-[#1B5E38]/35"
-                        }`}
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${
-                          key === "farmer" ? "bg-emerald-100" : "bg-violet-100"
-                        }`}>
-                          <Icon className={`w-4 h-4 ${key === "farmer" ? "text-emerald-600" : "text-violet-600"}`} />
-                        </div>
-                        <div className="text-sm font-bold text-[#132B1A]">{label}</div>
-                        <div className="text-[11px] text-[#5A6B58] mt-0.5">{sub}</div>
-                      </button>
-                    ))}
+                {/* Farmer Registration Notice */}
+                <div className="p-3.5 rounded-xl bg-[#1B5E38]/8 border border-[#1B5E38]/20 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#1B5E38] text-white flex items-center justify-center flex-shrink-0">
+                    <Sprout className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs text-[#132B1A]">
+                    <span className="font-bold block text-sm text-[#1B5E38]">Farmer Registration</span>
+                    Create your personalized farmer account to unlock AI crop advisory and mandi insights.
                   </div>
                 </div>
 
@@ -298,48 +284,44 @@ export function RegisterPage({ onLogin, onBack }) {
                   </div>
                 </div>
 
-                {/* Farmer-only fields */}
-                {role === "farmer" && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-[#132B1A] mb-1.5">Farm Size</label>
-                      <div className="relative">
-                        <select
-                          value={form.farmSize}
-                          onChange={(e) => set("farmSize", e.target.value)}
-                          className="w-full bg-white border border-border rounded-xl pl-3 pr-8 py-3 text-sm text-[#132B1A] outline-none focus:border-[#1B5E38] transition-all appearance-none cursor-pointer"
-                        >
-                          <option value="">Select</option>
-                          <option value="Under 1 acre">Under 1 acre</option>
-                          <option value="1–5 acres">1–5 acres</option>
-                          <option value="5–20 acres">5–20 acres</option>
-                          <option value="20+ acres">20+ acres</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A6B58]/60 pointer-events-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-[#132B1A] mb-1.5">Primary Crop</label>
-                      <div className="relative">
-                        <select
-                          value={form.primaryCrop}
-                          onChange={(e) => set("primaryCrop", e.target.value)}
-                          className="w-full bg-white border border-border rounded-xl pl-3 pr-8 py-3 text-sm text-[#132B1A] outline-none focus:border-[#1B5E38] transition-all appearance-none cursor-pointer"
-                        >
-                          <option value="">Select</option>
-                          <option value="Paddy (Jyothi)">Paddy</option>
-                          <option value="Coconut">Coconut</option>
-                          <option value="Banana (Nendran)">Banana</option>
-                          <option value="Pepper">Pepper</option>
-                          <option value="Rubber (RSI 4)">Rubber</option>
-                          <option value="Vegetables">Vegetables</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A6B58]/60 pointer-events-none" />
-                      </div>
+                {/* Farm Size & Crop */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#132B1A] mb-1.5">Farm Size</label>
+                    <div className="relative">
+                      <select
+                        value={form.farmSize}
+                        onChange={(e) => set("farmSize", e.target.value)}
+                        className="w-full bg-white border border-border rounded-xl pl-3 pr-8 py-3 text-sm text-[#132B1A] outline-none focus:border-[#1B5E38] transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="Under 1 acre">Under 1 acre</option>
+                        <option value="1–5 acres">1–5 acres</option>
+                        <option value="5–20 acres">5–20 acres</option>
+                        <option value="20+ acres">20+ acres</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A6B58]/60 pointer-events-none" />
                     </div>
                   </div>
-                )}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#132B1A] mb-1.5">Primary Crop</label>
+                    <div className="relative">
+                      <select
+                        value={form.primaryCrop}
+                        onChange={(e) => set("primaryCrop", e.target.value)}
+                        className="w-full bg-white border border-border rounded-xl pl-3 pr-8 py-3 text-sm text-[#132B1A] outline-none focus:border-[#1B5E38] transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="Paddy (Jyothi)">Paddy</option>
+                        <option value="Coconut">Coconut</option>
+                        <option value="Banana (Nendran)">Banana</option>
+                        <option value="Pepper">Pepper</option>
+                        <option value="Rubber (RSI 4)">Rubber</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A6B58]/60 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
 
                 {error && (
                   <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
@@ -439,10 +421,8 @@ export function RegisterPage({ onLogin, onBack }) {
                     </div>
                     <div className="flex justify-between">
                       <span>Role</span>
-                      <span className={`font-bold capitalize px-2 py-0.5 rounded-full text-xs ${
-                        role === "admin" ? "bg-violet-100 text-violet-700" : "bg-emerald-100 text-emerald-700"
-                      }`}>
-                        {role || "—"}
+                      <span className="font-bold capitalize px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-700">
+                        Farmer
                       </span>
                     </div>
                     <div className="flex justify-between">

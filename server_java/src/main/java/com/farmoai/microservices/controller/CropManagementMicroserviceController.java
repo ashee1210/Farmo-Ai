@@ -6,6 +6,7 @@ import com.farmoai.microservices.repository.FarmerCropRepository;
 import com.farmoai.microservices.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -120,7 +121,7 @@ public class CropManagementMicroserviceController {
     }
 
     @DeleteMapping("/crops/{id}")
-    public ResponseEntity<?> deleteCrop(@PathVariable String id) {
+    public ResponseEntity<?> deleteCrop(@PathVariable @NonNull String id) {
         cropRepository.deleteById(id);
         Map<String, Object> res = new HashMap<>();
         res.put("success", true);

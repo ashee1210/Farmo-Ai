@@ -1,12 +1,29 @@
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, CheckCircle, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, CheckCircle, Send, Loader2 } from "lucide-react";
 import { KrishiNavbar } from "./Navbar.jsx";
 import { KrishiFooter } from "./Footer.jsx";
 import { AnimatedBackground } from "./AnimatedBackground.jsx";
+import { sendContactFormMessage } from "../../services/adminService.js";
 
 export function ContactPage({ navigate }) {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
+    setSubmitting(true);
+    try {
+      await sendContactFormMessage(form);
+      setSent(true);
+    } catch (err) {
+      console.error("Submit error:", err);
+      setSent(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -63,7 +80,7 @@ export function ContactPage({ navigate }) {
             ) : (
               <>
                 <h3 className="text-xl font-extrabold text-[#132B1A] font-[Plus_Jakarta_Sans] mb-7">Send us a message</h3>
-                <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-[#132B1A] mb-1.5">Full Name *</label>
@@ -89,8 +106,9 @@ export function ContactPage({ navigate }) {
                     <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="Tell us how we can help…" required rows={5}
                       className="w-full bg-[#F6F4EE] border border-border rounded-xl px-4 py-3 text-sm text-[#132B1A] placeholder:text-[#5A6B58]/45 outline-none focus:border-[#1B5E38] transition-all resize-none" />
                   </div>
-                  <button type="submit" className="w-full py-3.5 rounded-xl bg-[#1B5E38] text-white font-bold text-sm hover:bg-[#155030] transition-all shadow-lg shadow-green-900/20 active:scale-95 flex items-center justify-center gap-2">
-                    <Send className="w-4 h-4" />Send Message
+                  <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-xl bg-[#1B5E38] text-white font-bold text-sm hover:bg-[#155030] transition-all shadow-lg shadow-green-900/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50">
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    <span>{submitting ? "Sending..." : "Send Message"}</span>
                   </button>
                 </form>
               </>
