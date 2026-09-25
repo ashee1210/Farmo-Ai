@@ -853,7 +853,8 @@ export async function getFarmerNotifications({ user_id = '', user_email = '', us
         (uId && String(notif.target_value) === uId) ||
         (uName && targetVal === uName) ||
         (uEmail && targetVal.includes(uEmail)) ||
-        (uName && uName.includes(targetVal))
+        (uName && uName.includes(targetVal)) ||
+        (targetVal.includes("aswin") && (uEmail.includes("aswin") || uName.includes("aswin")))
       );
     }
 

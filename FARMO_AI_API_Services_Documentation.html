@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FARMO AI - API Services Documentation</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 14mm 18mm 14mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1a202c;
+      line-height: 1.5;
+      font-size: 13px;
+      margin: 0;
+      padding: 0;
+    }
+    .cover {
+      text-align: center;
+      padding: 30px 20px 25px 20px;
+      border-bottom: 3px solid #1B5E38;
+      margin-bottom: 25px;
+      background: linear-gradient(135deg, #071A0C 0%, #132B1A 50%, #1B5E38 100%);
+      color: #ffffff;
+      border-radius: 12px;
+    }
+    .cover h1 {
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .cover h2 {
+      font-size: 16px;
+      font-weight: 500;
+      color: #86EFAC;
+      margin: 0 0 15px 0;
+    }
+    .meta-badges {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      font-size: 11px;
+      margin-top: 15px;
+    }
+    .meta-badge {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    h2.section-title {
+      font-size: 18px;
+      color: #1B5E38;
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 6px;
+      margin-top: 28px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      page-break-after: avoid;
+    }
+    p.section-desc {
+      color: #4A5568;
+      font-size: 12px;
+      font-style: italic;
+      margin-bottom: 16px;
+      margin-top: 0;
+    }
+    .endpoint-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      background: #FFFFFF;
+      overflow: hidden;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .endpoint-header {
+      background: #F8FAFC;
+      padding: 8px 12px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .method {
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+    }
+    .method.GET { background: #0284C7; }
+    .method.POST { background: #16A34A; }
+    .method.PUT { background: #D97706; }
+    .method.DELETE { background: #DC2626; }
+    .path {
+      font-family: Consolas, "Courier New", monospace;
+      font-weight: 700;
+      font-size: 13px;
+      color: #0F172A;
+    }
+    .ep-title {
+      color: #475569;
+      font-size: 12px;
+      margin-left: auto;
+      font-weight: 600;
+    }
+    .endpoint-body {
+      padding: 12px;
+    }
+    .access-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #E0E7FF;
+      color: #3730A3;
+      margin-bottom: 6px;
+    }
+    .desc {
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .label {
+      font-weight: 700;
+      font-size: 11px;
+      color: #475569;
+      text-transform: uppercase;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    pre {
+      background: #0F172A;
+      color: #F8FAFC;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 4px 0 8px 0;
+      line-height: 1.4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px 0;
+      font-size: 12px;
+    }
+    th {
+      background: #1B5E38;
+      color: #FFFFFF;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      border: 1px solid #1B5E38;
+    }
+    td {
+      padding: 7px 10px;
+      border: 1px solid #CBD5E1;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background: #F8FAFC;
+    }
+    .param-table th {
+      background: #E2E8F0;
+      color: #1E293B;
+      font-size: 11px;
+      border: 1px solid #CBD5E1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cover">
+    <h1>FARMO AI - SMART FARMING PLATFORM</h1>
+    <h2>Enterprise REST API & Microservices Technical Specification</h2>
+    <div class="meta-badges">
+      <div class="meta-badge">Version 2.4.0 (Enterprise)</div>
+      <div class="meta-badge">Protocol: HTTPS / JSON / REST</div>
+      <div class="meta-badge">Status: Production Live</div>
+      <div class="meta-badge">Database: MySQL 8.0+ / SQLite</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Platform Architecture & Base URLs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">Component</th>
+        <th style="width:45%;">Base Endpoint URL</th>
+        <th style="width:30%;">Role & Framework</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Node.js Express Server</strong></td>
+        <td><code>http://localhost:5000/api</code></td>
+        <td>Primary Full-Stack REST API & Live MySQL Connection</td>
+      </tr>
+      <tr>
+        <td><strong>Spring Boot Microservices</strong></td>
+        <td><code>http://localhost:8080/api</code></td>
+        <td>Java Spring Data JPA Microservice Cluster</td>
+      </tr>
+      <tr>
+        <td><strong>Production Vercel Cloud</strong></td>
+        <td><code>https://farmo-ai.vercel.app/api</code></td>
+        <td>Cloud Edge Hosting with Local/Offline Sync</td>
+      </tr>
+      <tr>
+        <td><strong>Ollama LLM Engine</strong></td>
+        <td><code>http://localhost:11434/api</code></td>
+        <td>Local AI Neural Inference (Llama-3 / Mistral)</td>
+      </tr>
+    </tbody>
+  </table>
+
+    <h2 class="section-title">1. System Health & Platform Diagnostics</h2>
+    <p class="section-desc">Heartbeat and diagnostic services providing real-time telemetry on the Express API server, MySQL/SQLite database engine connectivity, and system uptime.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/</span>
+          <span class="ep-title">Platform Welcome & Root Status</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Returns server branding, deployment mode, and timestamp.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">None required</div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "message": "FARMO AI Backend Server is Running!",
+  "version": "2.4.0",
+  "status": "active",
+  "timestamp": "2026-09-25T12:00:00.000Z"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/health</span>
+          <span class="ep-title">Database & Microservices Health Check</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Deep health probe verifying MySQL connection pool latency, active database engine, and uptime.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">None required</div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "status": "OK",
+  "engine": "mysql",
+  "database": "farmo_ai_db",
+  "host": "127.0.0.1:3306",
+  "uptime_seconds": 14205,
+  "timestamp": "2026-09-25T12:00:00.000Z"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">2. Authentication & Identity Services</h2>
+    <p class="section-desc">User registration, credential verification, JWT token issuance, and profile synchronization for both Farmers and Platform Administrators.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/auth/register</span>
+          <span class="ep-title">Farmer Account Registration</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Registers a new agricultural producer. Automatically provisions farmer profile, district assignment, and farm size records in MySQL.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "name": "Suresh Pillai",
+  "email": "suresh.pillai@gmail.com",
+  "password": "Farmer@123",
+  "phone": "+91 94470 12345",
+  "district": "Palakkad",
+  "crop": "Organic Paddy (Jyothi)",
+  "acres": 3.5,
+  "soil_type": "Alluvial"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 201]</div>
+        <pre>{
+  "success": true,
+  "message": "Farmer account registered successfully!",
+  "user": {
+    "id": "u_1790170999_a1b2",
+    "name": "Suresh Pillai",
+    "email": "suresh.pillai@gmail.com",
+    "role": "farmer",
+    "district": "Palakkad",
+    "crop": "Organic Paddy (Jyothi)",
+    "acres": 3.5
+  },
+  "token": "jwt_farmer_u_1790170999_a1b2"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/auth/login</span>
+          <span class="ep-title">User & Admin Authentication</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Validates credentials against MySQL `users` table. Automatically routes between Farmer Portal and Admin Portal according to account role.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "email": "admin@gmail.com",
+  "password": "admin@123"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Login successful",
+  "role": "admin",
+  "user": {
+    "id": "u_admin_default",
+    "name": "Admin Administrator",
+    "email": "admin@gmail.com",
+    "role": "admin",
+    "district": "Kerala"
+  },
+  "token": "jwt_admin_u_admin_default"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/user/profile</span>
+          <span class="ep-title">Get Authenticated User Profile</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer / Admin Access</span>
+          <div class="desc">Fetches full profile metadata, including primary crop, farm land size, soil classification, and profile avatar.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>email</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>User's registered email address</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": {
+    "id": "u_1786594685785_3j73",
+    "name": "ASHWIN",
+    "email": "aswin1210@gmail.com",
+    "phone": "9345675687",
+    "district": "Wayanad",
+    "crop": "rice (basmathi), corn",
+    "acres": 5.5,
+    "soil_type": "Alluvial",
+    "role": "farmer",
+    "joined": "2026-08-13"
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method PUT">PUT</span>
+          <span class="path">/api/user/profile</span>
+          <span class="ep-title">Update Farmer Profile</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Updates farm holding metrics, contact telephone number, district location, and avatar image URI.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "email": "aswin1210@gmail.com",
+  "name": "ASHWIN K S",
+  "phone": "9345675687",
+  "district": "Wayanad",
+  "crop": "rice (basmathi)",
+  "acres": 5.5,
+  "soil_type": "Loamy Alluvial"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Farmer profile updated successfully in MySQL database"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">3. Farmer Crop & Field Management Services</h2>
+    <p class="section-desc">Enables farmers to log crop rotations, track field parcel acreage, monitor vegetative growth stages, and assess crop health scores.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/user/crops</span>
+          <span class="ep-title">Retrieve Farmer Crops & Parcels</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer / Admin Access</span>
+          <div class="desc">Fetches list of active crops registered under the specified farmer ID or email.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>email</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Farmer's registered email</td>
+          </tr>
+        
+          <tr>
+            <td><code>farmer_id</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Unique farmer UUID</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "add_1790006014189_vgsn",
+      "crop_name": "rice",
+      "variety": "basmathi",
+      "acres": 3,
+      "health": 90,
+      "growth_stage": "Growing",
+      "status": "Available"
+    },
+    {
+      "id": "add_1790005832080_w54k",
+      "crop_name": "corn",
+      "variety": "Hybrid / Standard Variety",
+      "acres": 2.5,
+      "health": 90,
+      "growth_stage": "Growing",
+      "status": "Available"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/user/crops</span>
+          <span class="ep-title">Add New Crop Parcel</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Creates a new agricultural crop parcel in the MySQL `products` and `farmer_crops` tables.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "farmer_id": "u_1786594685785_3j73",
+  "farmer_email": "aswin1210@gmail.com",
+  "crop_name": "Pepper",
+  "variety": "Panniyur-1",
+  "quantity_acres": 1.5,
+  "price_per_unit": 680,
+  "health_rating": 95,
+  "growth_stage": "Vegetative",
+  "location_district": "Palakkad"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 201]</div>
+        <pre>{
+  "success": true,
+  "message": "Crop parcel added successfully to farm inventory",
+  "cropId": "crop_1790321550_9941"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method DELETE">DELETE</span>
+          <span class="path">/api/user/crops/:id</span>
+          <span class="ep-title">Delete Crop Parcel</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer / Admin Access</span>
+          <div class="desc">Removes a crop parcel record from the database by its unique parcel ID.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>id</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Crop parcel ID (path param)</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Crop parcel removed from database"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/user/yield-trend</span>
+          <span class="ep-title">Farmer Yield & Harvest Analytics</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Calculates harvest progression across crop parcels, production totals in Quintals, and estimated revenue value.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>email</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Farmer email</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": {
+    "ytd_production_qtl": 123,
+    "target_reached_pct": 90,
+    "estimated_value_inr": 161000,
+    "timeline": [
+      {
+        "week": "Week 1",
+        "yield": 35
+      },
+      {
+        "week": "Week 2",
+        "yield": 70
+      },
+      {
+        "week": "Week 3",
+        "yield": 95
+      },
+      {
+        "week": "Week 4",
+        "yield": 123
+      }
+    ]
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">4. Real-Time Push Notifications & Broadcast Center Services</h2>
+    <p class="section-desc">Broadcasts critical agro-advisories, mandi price surge warnings, and government schemes directly to all farmers or targeted users in real-time.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/admin/notifications</span>
+          <span class="ep-title">Send Admin Broadcast Notification</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Dispatches a push notification stored in MySQL `admin_notifications`. Supports broadcasting to ALL farmers or targeting a SPECIFIED farmer, district, or crop in real-time.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "title": "Monsoon Crop Drainage Advisory",
+  "message": "Heavy showers predicted in Wayanad & Palakkad. Clear secondary drainage channels immediately.",
+  "category": "Weather",
+  "priority": "Urgent",
+  "target_audience": "user",
+  "target_value": "aswin1210@gmail.com",
+  "sender_admin": "Admin Administrator"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 201]</div>
+        <pre>{
+  "success": true,
+  "message": "Notification broadcasted to farmers successfully!",
+  "data": {
+    "id": "notif_1790320657_mdhh",
+    "title": "Monsoon Crop Drainage Advisory",
+    "message": "Heavy showers predicted in Wayanad & Palakkad.",
+    "category": "Weather",
+    "priority": "Urgent",
+    "target_audience": "user",
+    "target_value": "aswin1210@gmail.com",
+    "sender_admin": "Admin Administrator",
+    "status": "active",
+    "created_at": "2026-09-25T07:17:37.000Z"
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/notifications</span>
+          <span class="ep-title">Farmer Live Notification Feed</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Fetches live notifications in real-time. Automatically filters records matching 'all', or matching the farmer's specific email, user ID, district, or crop.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>user_email</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Farmer's registered email</td>
+          </tr>
+        
+          <tr>
+            <td><code>user_id</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Farmer ID</td>
+          </tr>
+        
+          <tr>
+            <td><code>district</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Farmer district</td>
+          </tr>
+        
+          <tr>
+            <td><code>crop</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Farmer crop</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "notif_1790320657_mdhh",
+      "title": "Monsoon Crop Drainage Advisory",
+      "message": "Heavy showers predicted in Wayanad & Palakkad.",
+      "category": "Weather",
+      "priority": "Urgent",
+      "target_audience": "user",
+      "target_value": "aswin1210@gmail.com",
+      "sender_admin": "Admin Administrator",
+      "created_at": "2026-09-25T07:17:37.000Z"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/admin/notifications</span>
+          <span class="ep-title">List All Broadcast History</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Retrieves complete log of all broadcast alerts dispatched across Kerala.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "notif_1790319063676_mqg6",
+      "title": "heavy rain fall",
+      "message": "Advisory for coastal districts",
+      "category": "Market",
+      "priority": "Urgent",
+      "target_audience": "district",
+      "target_value": "Kannur",
+      "created_at": "2026-09-25T06:51:03.000Z"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method DELETE">DELETE</span>
+          <span class="path">/api/admin/notifications/:id</span>
+          <span class="ep-title">Delete Notification Broadcast</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Permanently deletes a broadcast record from MySQL database.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>id</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Notification ID</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Notification broadcast deleted successfully."
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">5. Mandi Market Price Intelligence Services</h2>
+    <p class="section-desc">Monitors daily wholesale Mandi trading prices, modal rates, price shifts, and AI price forecasting across Kerala agricultural markets.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/market-prices</span>
+          <span class="ep-title">Farmer Mandi Commodity Rates</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public / Farmer Access</span>
+          <div class="desc">Returns wholesale APMC Mandi rates with minimum, maximum, and modal price indices per commodity.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">None required</div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>district</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Filter by district (e.g. Palakkad, Wayanad)</td>
+          </tr>
+        
+          <tr>
+            <td><code>crop</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Filter by commodity name</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "m_paddy_real",
+      "crop_name": "Organic Paddy (Jyothi)",
+      "district": "Palakkad",
+      "min_price": 2180,
+      "max_price": 2350,
+      "modal_price": 2280,
+      "unit": "Quintal",
+      "price_trend": "+3.3%",
+      "status": "Rising"
+    },
+    {
+      "id": "m_pepper_real",
+      "crop_name": "Pepper",
+      "district": "Palakkad",
+      "min_price": 640,
+      "max_price": 720,
+      "modal_price": 680,
+      "unit": "KG",
+      "price_trend": "+6.3%",
+      "status": "Rising"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/admin/market-prices</span>
+          <span class="ep-title">Create Mandi Price Entry</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Adds a new commodity trading price quote for a designated Mandi.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "crop_name": "Cardamom (Green Supreme)",
+  "district": "Idukki",
+  "min_price": 1850,
+  "max_price": 2150,
+  "modal_price": 2000,
+  "unit": "KG",
+  "price_trend": "+5.1%",
+  "status": "Rising"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 201]</div>
+        <pre>{
+  "success": true,
+  "message": "Market price record published successfully"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/admin/market-prices/upsert</span>
+          <span class="ep-title">Bulk Upsert Mandi Rates</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Batch synchronizes multiple commodity market rates in a single atomic transaction.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "prices": [
+    {
+      "crop": "Paddy",
+      "current": 2280,
+      "prev": 2180,
+      "trend": "+4.5%"
+    },
+    {
+      "crop": "Corn",
+      "current": 1680,
+      "prev": 1620,
+      "trend": "+3.7%"
+    }
+  ]
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Bulk market rates updated successfully"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">6. Weather & Agro-Climatic Intelligence Services</h2>
+    <p class="section-desc">Hyper-local weather telemetry delivering precipitation forecasts, humidity readings, solar radiation indices, and farm management advice.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/weather</span>
+          <span class="ep-title">Get Localized Agro-Weather Forecast</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public / Farmer Access</span>
+          <div class="desc">Fetches 7-day meteorological forecasts, precipitation alerts, and fieldwork safety advisories.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">None required</div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>district</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>District name (default: Palakkad)</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": {
+    "district": "Palakkad",
+    "current": {
+      "temp_c": 28.5,
+      "condition": "Sunny with light clouds",
+      "humidity": 78,
+      "wind_kph": 12.4,
+      "rain_chance_pct": 20
+    },
+    "forecast": [
+      {
+        "day": "Today",
+        "high": 31,
+        "low": 24,
+        "rain": 20,
+        "desc": "Sunny"
+      },
+      {
+        "day": "Tomorrow",
+        "high": 29,
+        "low": 23,
+        "rain": 65,
+        "desc": "Rain"
+      }
+    ],
+    "advisory": "Favorable conditions for foliar fertilizer application before midday."
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">7. AI Diagnostics & Ollama LLM Services</h2>
+    <p class="section-desc">Deep learning models for plant pathology detection, leaf disease classification, and multi-turn LLM agricultural advisory via local Ollama instances.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/ai/ollama/status</span>
+          <span class="ep-title">Ollama LLM Engine Connectivity Check</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Checks local Ollama server status (`http://localhost:11434`), loaded neural models, and inference availability.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">None required</div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "connected": true,
+  "model": "llama3",
+  "version": "0.1.32",
+  "modelsAvailable": [
+    "llama3:latest",
+    "mistral:latest"
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/ai/chat</span>
+          <span class="ep-title">Conversational Farming Assistant</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Multi-turn AI conversation answering questions on soil management, fertilizer formulas, pest control, and market timing.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "message": "What fertilizer should I apply for my rice paddy at tillering stage?",
+  "district": "Palakkad",
+  "crop": "Paddy"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "reply": "For rice at tillering stage, apply Urea (46-0-0) at 50 kg/ha as top-dressing. Ensure soil moisture is optimal before broadcast.",
+  "modelUsed": "llama3"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/crops/scan</span>
+          <span class="ep-title">Crop Leaf Disease Image Diagnostic</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Analyzes crop leaf symptoms via computer vision/Ollama to detect diseases, pathogen type, severity level, and treatments.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "farmer_id": "u_1790170235463_3crv",
+  "crop": "Paddy",
+  "district": "Palakkad",
+  "image_data": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "scanId": "scan_1790322100",
+  "disease": "Bacterial Blight (Xanthomonas oryzae)",
+  "severity": "Medium",
+  "confidence": 96,
+  "treatment": "Apply Streptomycin sulphate + Tetracycline combination with Copper Oxychloride. Drain standing water.",
+  "status": "detected"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/crops/scans</span>
+          <span class="ep-title">Farmer Disease Scan History</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">Retrieves historical disease diagnostic scans conducted by the authenticated farmer.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>farmer_id</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Farmer UUID</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "scan_1790093429813",
+      "crop": "paddy",
+      "disease": "Bacterial Blight",
+      "severity": "Medium",
+      "confidence": 96,
+      "status": "detected",
+      "detected_at": "2026-09-22T16:10:29.000Z"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">8. Admin Oversight & Analytics Services</h2>
+    <p class="section-desc">Administrative intelligence center for farmer verification, regional crop census, account governance, and platform KPIs.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/admin/overview</span>
+          <span class="ep-title">Executive Metrics & Regional KPI Rollup</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Returns top-level management KPIs: total registered farmers, active percentage, aggregated crop acreage, and district distributions.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>district</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Filter by district</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": {
+    "totalFarmers": 5,
+    "activeFarmers": 5,
+    "totalAdmins": 1,
+    "totalCrops": 5,
+    "totalCropAcres": "11.0 ac",
+    "diseaseResolutionRate": "98%",
+    "totalMandis": "28 Mandis",
+    "cropDistribution": [
+      {
+        "name": "Paddy (Jyothi)",
+        "count": 2,
+        "acres": "3.5",
+        "value": 32
+      },
+      {
+        "name": "rice (basmathi)",
+        "count": 1,
+        "acres": "3.0",
+        "value": 27
+      },
+      {
+        "name": "corn",
+        "count": 1,
+        "acres": "2.5",
+        "value": 23
+      },
+      {
+        "name": "Pepper",
+        "count": 1,
+        "acres": "1.0",
+        "value": 9
+      },
+      {
+        "name": "Rubber (RSI 4)",
+        "count": 1,
+        "acres": "1.0",
+        "value": 9
+      }
+    ]
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/admin/farmers</span>
+          <span class="ep-title">Admin Farmer Registry Query</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Paginated search across the master farmer database with filtering by status and query string.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>page</code></td>
+            <td>number</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Page index (default: 1)</td>
+          </tr>
+        
+          <tr>
+            <td><code>limit</code></td>
+            <td>number</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Records per page (default: 20)</td>
+          </tr>
+        
+          <tr>
+            <td><code>search</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Keyword search in name, email, crop, location</td>
+          </tr>
+        
+          <tr>
+            <td><code>status</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Filter by status: 'active', 'inactive', or 'all'</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "count": 5,
+  "data": [
+    {
+      "id": "u_1790170235463_3crv",
+      "name": "thilaga",
+      "email": "717824f155@gmail.com",
+      "phone": "6380514411",
+      "district": "Palakkad",
+      "crop": "Pepper",
+      "acres": 1,
+      "status": "Active"
+    },
+    {
+      "id": "u_farmer_01",
+      "name": "Ramesh Kumar",
+      "email": "ramesh@gmail.com",
+      "phone": "+91 94470 12345",
+      "district": "Palakkad",
+      "crop": "Organic Paddy (Jyothi Hybrid)",
+      "acres": 2.5,
+      "status": "Active"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method PUT">PUT</span>
+          <span class="path">/api/admin/farmers/:id/status</span>
+          <span class="ep-title">Update Farmer Account Status</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Modifies farmer status (e.g. Active, Suspended, Inactive).</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json | Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>id</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Farmer user ID</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "status": "Active"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Farmer status updated to Active"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/admin/analytics</span>
+          <span class="ep-title">Growth & Telemetry Analytics</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Provides time-series growth telemetry on sessions, farmer onboarding, and revenue.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>month</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>Specific month or 'all'</td>
+          </tr>
+        
+          <tr>
+            <td><code>district</code></td>
+            <td>string</td>
+            <td style="color:#64748B; font-weight:400">Optional</td>
+            <td>District filter</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "hasData": true,
+  "data": [
+    {
+      "month": "May",
+      "farmers": 1,
+      "sessions": 45,
+      "revenue": 1800
+    },
+    {
+      "month": "Aug",
+      "farmers": 4,
+      "sessions": 280,
+      "revenue": 11200
+    },
+    {
+      "month": "Sep",
+      "farmers": 5,
+      "sessions": 420,
+      "revenue": 16800
+    }
+  ],
+  "meta": {
+    "totalFarmers": 5,
+    "totalSessions": 420,
+    "totalRevenue": 16800
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">9. Public Support & Inquiries Services</h2>
+    <p class="section-desc">Public contact form processing, automated admin alert routing, and support ticket management.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/contact</span>
+          <span class="ep-title">Submit Public Contact Message</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Accepts inquiry from landing page contact form. Saves to `contact_messages` table and immediately raises an alert in the Admin Portal.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "name": "Dr. Ananya Nair",
+  "email": "ananya@agriuniversity.edu",
+  "subject": "Partnership & Soil Sensor Research",
+  "message": "We would like to integrate our soil moisture telemetry with FARMO AI."
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Thank you! Your message has been submitted to the admin team.",
+  "data": {
+    "id": "contact_1790322500_xyz1",
+    "name": "Dr. Ananya Nair",
+    "email": "ananya@agriuniversity.edu",
+    "subject": "Partnership & Soil Sensor Research",
+    "created_at": "2026-09-25T08:15:00.000Z"
+  }
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/admin/contact-messages</span>
+          <span class="ep-title">List Contact Inquiries</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Fetches submitted user inquiries, sorted chronologically with read/unread statuses.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "contact_1790322500_xyz1",
+      "name": "Dr. Ananya Nair",
+      "email": "ananya@agriuniversity.edu",
+      "subject": "Partnership & Soil Sensor Research",
+      "message": "We would like to integrate our soil moisture telemetry with FARMO AI.",
+      "status": "unread",
+      "created_at": "2026-09-25T08:15:00.000Z"
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method PUT">PUT</span>
+          <span class="path">/api/admin/contact-messages/:id/read</span>
+          <span class="ep-title">Mark Contact Message Read</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Updates message status to 'read'.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label">Query / Path Parameters</div>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+      
+          <tr>
+            <td><code>id</code></td>
+            <td>string</td>
+            <td style="color:#DC2626; font-weight:700">Required</td>
+            <td>Contact message ID</td>
+          </tr>
+        
+          </tbody>
+        </table>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "Message marked as read"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">10. Reports & Data Export Services</h2>
+    <p class="section-desc">Standardized tabular reporting, agricultural production census, and unified data views.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/reports/users</span>
+          <span class="ep-title">Master Users & Farmers Census Report</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">Produces full tabular dump combining user accounts, farmer credentials, crop varieties, farm land acreage, and registered dates.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "count": 6,
+  "data": [
+    {
+      "user_id": "u_admin_default",
+      "user_name": "Admin Administrator",
+      "email": "admin@gmail.com",
+      "role": "admin",
+      "district": "Kerala"
+    },
+    {
+      "user_id": "u_1786594685785_3j73",
+      "user_name": "ASHWIN",
+      "email": "aswin1210@gmail.com",
+      "role": "farmer",
+      "district": "Wayanad",
+      "crop_name": "rice (basmathi), corn",
+      "crop_acres": 5.5
+    }
+  ]
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/unified/all</span>
+          <span class="ep-title">Unified All-in-One Data View</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Admin Access</span>
+          <div class="desc">High-performance SQL View (`view_unified_all_in_one6`) consolidating users, farmer crops, disease scans, and market prices.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "totalRows": 6,
+  "viewName": "view_unified_all_in_one6"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">11. Spring Boot Java Microservices Architecture</h2>
+    <p class="section-desc">Enterprise Java Spring Boot microservice cluster running on port 8080 (`com.farmoai.microservices`), providing modular JPA-backed endpoints.</p>
+  
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method POST">POST</span>
+          <span class="path">/api/auth/register (Java Spring Boot)</span>
+          <span class="ep-title">Spring Boot User Registration Microservice</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Public Access</span>
+          <div class="desc">Spring Data JPA controller handling farmer account registration with duplicate email validation and password encryption.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Content-Type: application/json</div>
+      
+        <div class="label">Request Body (JSON)</div>
+        <pre>{
+  "name": "Manoj Varma",
+  "email": "manoj@gmail.com",
+  "district": "Thrissur",
+  "phone": "+91 94470 55555"
+}</pre>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "message": "User registered successfully via Spring Boot Microservice"
+}</pre>
+      
+        </div>
+      </div>
+    
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method GET">GET</span>
+          <span class="path">/api/crops/all (Java Spring Boot)</span>
+          <span class="ep-title">Spring Boot Crop Management Microservice</span>
+        </div>
+        <div class="endpoint-body">
+          <span class="access-tag">Farmer Access</span>
+          <div class="desc">JPA repository-backed crop entity retrieval with health rating filtering.</div>
+    
+        <div class="label">Headers</div>
+        <div style="font-family: monospace; font-size: 11px; color:#475569;">Authorization: Bearer <token></div>
+      
+        <div class="label" style="color:#16A34A;">Response Example [HTTP 200]</div>
+        <pre>{
+  "success": true,
+  "count": 5,
+  "service": "CropManagementMicroservice"
+}</pre>
+      
+        </div>
+      </div>
+    
+    <h2 class="section-title">12. Data Models, Schemas & Entity Dictionary</h2>
+    <p class="section-desc">Database table structures across the MySQL relational schema `farmo_ai_db`.</p>
+  
+  <h2 class="section-title">Relational Database Schemas (MySQL farmo_ai_db)</h2>
+  <p class="section-desc">Normalized table definitions and entity schemas residing in the MySQL database.</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Table Name</th>
+        <th style="width: 75%;">Columns & Relational Model Description</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    <tr>
+      <td><code>users</code></td>
+      <td>Core user authentication table (id, full_name, email, password, phone, role, district, created_at)</td>
+    </tr>
+  
+    <tr>
+      <td><code>farmers</code></td>
+      <td>Agricultural farmer profiles (id, full_name, email, phone, location, district, primary_crop, farm_size_acres, status)</td>
+    </tr>
+  
+    <tr>
+      <td><code>products</code></td>
+      <td>Crops and farm harvest parcels (id, farmer_id, product_name, variety, quantity_acres, price_per_unit, health_rating, growth_stage)</td>
+    </tr>
+  
+    <tr>
+      <td><code>farmer_crops</code></td>
+      <td>Crop rotation records and field tracking (id, farmer_id, crop_name, variety, acres, planting_date, harvest_date, health)</td>
+    </tr>
+  
+    <tr>
+      <td><code>admin_notifications</code></td>
+      <td>Push notification broadcasts (id, title, message, category, priority, target_audience, target_value, sender_admin, status, created_at)</td>
+    </tr>
+  
+    <tr>
+      <td><code>contact_messages</code></td>
+      <td>Public user contact inquiries (id, name, email, subject, message, status, created_at)</td>
+    </tr>
+  
+    <tr>
+      <td><code>disease_scans</code></td>
+      <td>Plant pathology scan records (id, farmer_id, crop, disease, severity, confidence, treatment, status, created_at)</td>
+    </tr>
+  
+    <tr>
+      <td><code>market_prices</code></td>
+      <td>APMC wholesale Mandi price index (id, crop_name, district, min_price, max_price, modal_price, unit, price_trend, status)</td>
+    </tr>
+  
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Error Codes & Standard Response Structure</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 15%;">HTTP Code</th>
+        <th style="width: 25%;">Error Name</th>
+        <th style="width: 60%;">Description & Resolution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>200 OK</strong></td>
+        <td>Success</td>
+        <td>Request completed successfully and payload returned.</td>
+      </tr>
+      <tr>
+        <td><strong>201 Created</strong></td>
+        <td>Resource Created</td>
+        <td>New account, crop parcel, or broadcast notification created.</td>
+      </tr>
+      <tr>
+        <td><strong>400 Bad Request</strong></td>
+        <td>Validation Error</td>
+        <td>Missing required fields (e.g. email, password, notification title).</td>
+      </tr>
+      <tr>
+        <td><strong>401 Unauthorized</strong></td>
+        <td>Auth Required</td>
+        <td>Missing or expired Bearer token in request header.</td>
+      </tr>
+      <tr>
+        <td><strong>403 Forbidden</strong></td>
+        <td>Role Permission Denied</td>
+        <td>Attempting to access Admin operations without superuser privileges.</td>
+      </tr>
+      <tr>
+        <td><strong>404 Not Found</strong></td>
+        <td>Resource Missing</td>
+        <td>Target entity ID (farmer, crop, notification) not found in database.</td>
+      </tr>
+      <tr>
+        <td><strong>500 Server Error</strong></td>
+        <td>Internal Error</td>
+        <td>Database timeout, connection disconnect, or syntax exception.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

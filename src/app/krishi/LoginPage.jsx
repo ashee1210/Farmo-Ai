@@ -17,6 +17,7 @@ export function KrishiLoginPage({ navigate }) {
 
   const SEED_FARMERS = [
     { email: "aswin1210@gmail.com", pass: "Farmer@123", name: "ASHWIN", district: "Wayanad", crop: "rice (basmathi), corn", acres: 5.5, phone: "9345675687" },
+    { email: "aswinks1210@gmail.com", pass: "Farmer@123", name: "ASHWIN", district: "Wayanad", crop: "rice (basmathi), corn", acres: 5.5, phone: "9345675687" },
     { email: "717824f102@kce.ac.in", pass: "Farmer@123", name: "AJRIN KS", district: "Kannur", crop: "Paddy (Jyothi)", acres: 1.0, phone: "+91 94470 12345" },
     { email: "ramesh@gmail.com", pass: "Farmer@123", name: "Ramesh Kumar", district: "Palakkad", crop: "Organic Paddy (Jyothi Hybrid)", acres: 2.5, phone: "+91 94470 12345" },
     { email: "717824f155@gmail.com", pass: "Farmer@123", name: "thilaga", district: "Palakkad", crop: "Pepper", acres: 1.0, phone: "6380514411" },
@@ -140,7 +141,8 @@ export function KrishiLoginPage({ navigate }) {
       }
 
       // 3. Check seeded demo farmers
-      const seedMatch = SEED_FARMERS.find(f => f.email === targetEmail);
+      const seedMatch = SEED_FARMERS.find(f => f.email.toLowerCase() === targetEmail) ||
+        (targetEmail.toLowerCase().includes("aswin") ? SEED_FARMERS.find(f => f.name === "ASHWIN") : null);
       if (seedMatch) {
         if (pass !== seedMatch.pass && pass !== "farmer123" && pass !== "admin@123" && pass.length < 6) {
           setLoading(false);
@@ -150,33 +152,84 @@ export function KrishiLoginPage({ navigate }) {
         const userObj = {
           id: `f_${seedMatch.email.split("@")[0]}`,
           name: seedMatch.name,
-          email: seedMatch.email,
+          email: targetEmail,
           phone: seedMatch.phone || "+91 94470 12345",
           district: seedMatch.district || "Palakkad",
           crop: seedMatch.crop || "Paddy (Jyothi)",
           acres: seedMatch.acres || 3.5,
+          state: "Kerala",
           role: "farmer"
         };
         localStorage.setItem("krishi_token",        `jwt_${userObj.id}`);
         localStorage.setItem("krishi_user_email",   targetEmail);
         localStorage.setItem("krishi_user",         userObj.name);
         localStorage.setItem("krishi_user_profile", JSON.stringify(userObj));
+
+        // Real-time crop initialization for seed user if not set
+        const cropsKeyEmail = `krishi_user_crops_${targetEmail}`;
+        const cropsKeyName = `krishi_user_crops_${userObj.name}`;
+        if (!localStorage.getItem(cropsKeyEmail) && !localStorage.getItem(cropsKeyName)) {
+          let initialCrops = [];
+          if (seedMatch.name === "ASHWIN" || targetEmail.toLowerCase().includes("aswin")) {
+            initialCrops = [
+              { id: "crop_ashwin_1", name: "rice", variety: "basmathi", area: "3.00 acres", health: 90, stage: "Growing", nextAction: "Apply organic fertilizer before upcoming rain", image: null },
+              { id: "crop_ashwin_2", name: "corn", variety: "Hybrid / Standard Variety", area: "2.50 acres", health: 90, stage: "Growing", nextAction: "Inspect leaf growth and soil moisture", image: null }
+            ];
+          } else {
+            initialCrops = [{
+              id: `crop_${userObj.id}_1`,
+              name: userObj.crop || "Paddy (Jyothi)",
+              variety: "Hybrid Standard",
+              area: `${userObj.acres || 2.5} acres`,
+              health: 95,
+              stage: "Growing",
+              nextAction: "Regular field monitoring & care",
+              image: null
+            }];
+          }
+          try {
+            localStorage.setItem(cropsKeyEmail, JSON.stringify(initialCrops));
+            localStorage.setItem(cropsKeyName, JSON.stringify(initialCrops));
+            localStorage.setItem(`krishi_user_crops_user`, JSON.stringify(initialCrops));
+          } catch (e) {}
+        }
+
+        // Real-time farm details initialization for seed user if not set
+        const farmKeyEmail = `krishi_farm_details_${targetEmail}`;
+        const farmKeyName = `krishi_farm_details_${userObj.name}`;
+        if (!localStorage.getItem(farmKeyEmail) && !localStorage.getItem(farmKeyName)) {
+          const farmDetailsObj = {
+            farmName: `${userObj.name}'s Farm`,
+            location: `${userObj.district}, Kerala`,
+            totalArea: String(userObj.acres),
+            description: `Active operational farm in ${userObj.district}, Kerala.`,
+            phone: userObj.phone,
+            email: targetEmail
+          };
+          try {
+            localStorage.setItem(farmKeyEmail, JSON.stringify(farmDetailsObj));
+            localStorage.setItem(farmKeyName, JSON.stringify(farmDetailsObj));
+          } catch (e) {}
+        }
+
         navigate("farmer");
         return true;
       }
 
       // 4. Any valid farmer user logging in on Vercel / offline mode
       if (pass.length >= 6) {
+        const isAswin = targetEmail.toLowerCase().includes("aswin");
         const rawName = targetEmail.split("@")[0].replace(/[._0-9-]/g, ' ').trim();
-        const formattedName = rawName ? rawName.replace(/\b\w/g, c => c.toUpperCase()) : "Farmer";
+        const formattedName = isAswin ? "ASHWIN" : (rawName ? rawName.replace(/\b\w/g, c => c.toUpperCase()) : "Farmer");
         const fallbackUser = {
-          id: `f_${Date.now()}`,
+          id: isAswin ? "f_ashwin" : `f_${Date.now()}`,
           name: formattedName || "Farmer",
           email: targetEmail,
-          phone: "+91 94470 12345",
-          district: "Palakkad",
-          crop: "Paddy (Jyothi)",
-          acres: 3.5,
+          phone: isAswin ? "9345675687" : "+91 94470 12345",
+          district: isAswin ? "Wayanad" : "Palakkad",
+          crop: isAswin ? "rice (basmathi), corn" : "Paddy (Jyothi)",
+          acres: isAswin ? 5.5 : 3.5,
+          state: "Kerala",
           role: "farmer"
         };
 
@@ -189,6 +242,29 @@ export function KrishiLoginPage({ navigate }) {
         localStorage.setItem("krishi_user_email",   targetEmail);
         localStorage.setItem("krishi_user",         fallbackUser.name);
         localStorage.setItem("krishi_user_profile", JSON.stringify(fallbackUser));
+
+        if (isAswin) {
+          const ashwinCrops = [
+            { id: "crop_ashwin_1", name: "rice", variety: "basmathi", area: "3.00 acres", health: 90, stage: "Growing", nextAction: "Apply organic fertilizer before upcoming rain", image: null },
+            { id: "crop_ashwin_2", name: "corn", variety: "Hybrid / Standard Variety", area: "2.50 acres", health: 90, stage: "Growing", nextAction: "Inspect leaf growth and soil moisture", image: null }
+          ];
+          try {
+            localStorage.setItem(`krishi_user_crops_${targetEmail}`, JSON.stringify(ashwinCrops));
+            localStorage.setItem(`krishi_user_crops_${fallbackUser.name}`, JSON.stringify(ashwinCrops));
+            localStorage.setItem(`krishi_user_crops_user`, JSON.stringify(ashwinCrops));
+            const farmDetailsObj = {
+              farmName: "ASHWIN's Farm",
+              location: "Wayanad, Kerala",
+              totalArea: "5.5",
+              description: "Active operational farm in Wayanad, Kerala.",
+              phone: "9345675687",
+              email: targetEmail
+            };
+            localStorage.setItem(`krishi_farm_details_${targetEmail}`, JSON.stringify(farmDetailsObj));
+            localStorage.setItem(`krishi_farm_details_${fallbackUser.name}`, JSON.stringify(farmDetailsObj));
+          } catch (e) {}
+        }
+
         navigate("farmer");
         return true;
       }

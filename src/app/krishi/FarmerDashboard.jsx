@@ -1028,32 +1028,58 @@ function MyFarmSection({ navigate, userProfile, setUserProfile, userCropsList = 
 
   const [farmDetails, setFarmDetails] = useState(() => {
     try {
-      const saved = localStorage.getItem(userStorageKey);
+      const saved = localStorage.getItem(userStorageKey) ||
+                    (userProfile?.email ? localStorage.getItem(`krishi_farm_details_${userProfile.email}`) : null) ||
+                    (userProfile?.name ? localStorage.getItem(`krishi_farm_details_${userProfile.name}`) : null);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
+    const isAswin = (userProfile?.name && userProfile.name.toUpperCase().includes("ASHWIN")) ||
+                    (userProfile?.email && userProfile.email.toLowerCase().includes("aswin"));
     return {
-      farmName: userProfile?.name ? `${userProfile.name}'s Farm` : "My Farm",
-      location: userProfile?.district ? `${userProfile.district}, ${userProfile?.state || 'Kerala'}` : "Location Not Set",
-      totalArea: userProfile?.acres ? `${String(userProfile.acres).replace(/[^0-9.]/g, '') || ''}` : "",
-      description: userProfile?.description || "",
-      phone: userProfile?.phone || "",
-      email: userProfile?.email || ""
+      farmName: userProfile?.name ? `${userProfile.name}'s Farm` : (isAswin ? "ASHWIN's Farm" : "My Farm"),
+      location: userProfile?.district ? `${userProfile.district}, ${userProfile?.state || 'Kerala'}` : (isAswin ? "Wayanad, Kerala" : "Location Not Set"),
+      totalArea: userProfile?.acres ? `${String(userProfile.acres).replace(/[^0-9.]/g, '') || ''}` : (isAswin ? "5.5" : "3.5"),
+      description: userProfile?.description || (isAswin ? "Active operational farm in Wayanad, Kerala." : ""),
+      phone: userProfile?.phone || (isAswin ? "9345675687" : ""),
+      email: userProfile?.email || (isAswin ? "aswin1210@gmail.com" : "")
     };
   });
   const [tempDetails, setTempDetails] = useState(farmDetails);
 
   useEffect(() => {
-    if (userProfile && userProfile.name) {
-      setFarmDetails({
-        farmName: `${userProfile.name}'s Farm`,
-        location: `${userProfile.district || 'Idukki'}, ${userProfile.state || 'Kerala'}`,
-        totalArea: userProfile.acres ? `${String(userProfile.acres).replace(/[^0-9.]/g, '')}` : "4.5",
-        description: "",
-        phone: userProfile.phone || "+91 94470 12345",
-        email: userProfile.email || "farmer@farmoai.in"
-      });
+    if (userProfile && (userProfile.name || userProfile.email)) {
+      let existingDetails = null;
+      try {
+        const raw = localStorage.getItem(userStorageKey) ||
+                    (userProfile.email ? localStorage.getItem(`krishi_farm_details_${userProfile.email}`) : null) ||
+                    (userProfile.name ? localStorage.getItem(`krishi_farm_details_${userProfile.name}`) : null);
+        if (raw) existingDetails = JSON.parse(raw);
+      } catch (e) {}
+
+      if (existingDetails) {
+        setFarmDetails(existingDetails);
+        setTempDetails(existingDetails);
+      } else {
+        const isAswin = (userProfile.name && userProfile.name.toUpperCase().includes("ASHWIN")) ||
+                        (userProfile.email && userProfile.email.toLowerCase().includes("aswin"));
+        const initial = {
+          farmName: `${userProfile.name || 'ASHWIN'}'s Farm`,
+          location: `${userProfile.district || (isAswin ? 'Wayanad' : 'Palakkad')}, ${userProfile.state || 'Kerala'}`,
+          totalArea: userProfile.acres ? `${String(userProfile.acres).replace(/[^0-9.]/g, '')}` : (isAswin ? "5.5" : "3.5"),
+          description: userProfile.description || (isAswin ? "Active operational farm in Wayanad, Kerala." : "Active farm operations."),
+          phone: userProfile.phone || (isAswin ? "9345675687" : "+91 94470 12345"),
+          email: userProfile.email || (isAswin ? "aswin1210@gmail.com" : "")
+        };
+        setFarmDetails(initial);
+        setTempDetails(initial);
+        try {
+          localStorage.setItem(userStorageKey, JSON.stringify(initial));
+          if (userProfile.email) localStorage.setItem(`krishi_farm_details_${userProfile.email}`, JSON.stringify(initial));
+          if (userProfile.name) localStorage.setItem(`krishi_farm_details_${userProfile.name}`, JSON.stringify(initial));
+        } catch (e) {}
+      }
     }
-  }, [userProfile]);
+  }, [userProfile?.name, userProfile?.email, userProfile?.district, userProfile?.acres, userStorageKey]);
 
   const crop = selected ? userCropsList.find(c => c.id === selected) : null;
 
@@ -1079,9 +1105,38 @@ function MyFarmSection({ navigate, userProfile, setUserProfile, userCropsList = 
 
   const saveCropsToStorage = (updatedList) => {
     if (setAdditionalCrops) setAdditionalCrops(updatedList);
+    const newTotalAcres = updatedList.reduce((acc, c) => acc + (parseFloat(String(c.area).replace(/[^0-9.]/g, '')) || 0), 0);
+    const roundedAcres = newTotalAcres > 0 ? (Math.round(newTotalAcres * 100) / 100) : null;
+
     try {
       localStorage.setItem(userCropsStorageKey, JSON.stringify(updatedList));
+      if (userProfile?.email) localStorage.setItem(`krishi_user_crops_${userProfile.email}`, JSON.stringify(updatedList));
+      if (userProfile?.name) localStorage.setItem(`krishi_user_crops_${userProfile.name}`, JSON.stringify(updatedList));
+      localStorage.setItem("krishi_user_crops_user", JSON.stringify(updatedList));
     } catch (e) {}
+
+    if (roundedAcres) {
+      setFarmDetails(prev => {
+        const next = { ...prev, totalArea: String(roundedAcres) };
+        try {
+          localStorage.setItem(userStorageKey, JSON.stringify(next));
+          if (userProfile?.email) localStorage.setItem(`krishi_farm_details_${userProfile.email}`, JSON.stringify(next));
+          if (userProfile?.name) localStorage.setItem(`krishi_farm_details_${userProfile.name}`, JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
+      if (setUserProfile) {
+        setUserProfile(prev => {
+          const next = { ...prev, acres: roundedAcres };
+          try {
+            localStorage.setItem("krishi_user_profile", JSON.stringify(next));
+            window.dispatchEvent(new Event("profileUpdated"));
+          } catch (e) {}
+          return next;
+        });
+      }
+    }
+    window.dispatchEvent(new Event("cropsUpdated"));
   };
 
   const handleDeleteCrop = async (cropId) => {
@@ -1118,6 +1173,8 @@ function MyFarmSection({ navigate, userProfile, setUserProfile, userCropsList = 
     setFarmDetails(tempDetails);
     try {
       localStorage.setItem(userStorageKey, JSON.stringify(tempDetails));
+      if (userProfile?.email) localStorage.setItem(`krishi_farm_details_${userProfile.email}`, JSON.stringify(tempDetails));
+      if (userProfile?.name) localStorage.setItem(`krishi_farm_details_${userProfile.name}`, JSON.stringify(tempDetails));
     } catch (e) {}
     setEditingFarmDetails(false);
 
@@ -1126,11 +1183,14 @@ function MyFarmSection({ navigate, userProfile, setUserProfile, userCropsList = 
       acres: tempDetails.totalArea,
       name: tempDetails.farmName.replace("'s Farm", "").trim() || userProfile?.name,
       phone: tempDetails.phone,
+      district: tempDetails.location ? tempDetails.location.split(",")[0].trim() : userProfile?.district,
     };
     if (setUserProfile) {
       setUserProfile(updatedProfile);
       try {
+        localStorage.setItem("krishi_user", updatedProfile.name);
         localStorage.setItem("krishi_user_profile", JSON.stringify(updatedProfile));
+        window.dispatchEvent(new Event("profileUpdated"));
       } catch (e) {}
     }
 
@@ -1143,6 +1203,7 @@ function MyFarmSection({ navigate, userProfile, setUserProfile, userCropsList = 
         name: tempDetails.farmName.replace("'s Farm", ""),
         phone: tempDetails.phone,
         acres: tempDetails.totalArea,
+        district: tempDetails.location ? tempDetails.location.split(",")[0].trim() : userProfile?.district,
       }),
     }).catch(() => {});
   };
@@ -4523,14 +4584,15 @@ export function FarmerDashboard({ navigate, initialSection }) {
     } catch (e) {}
     const uName = localStorage.getItem("krishi_user") || "";
     const uEmail = localStorage.getItem("krishi_user_email") || "";
+    const isAswin = uEmail.toLowerCase().includes("aswin") || uName.toUpperCase().includes("ASHWIN");
     return {
-      name: uName || "Farmer",
-      email: uEmail,
-      phone: "",
-      district: "",
+      name: isAswin ? "ASHWIN" : (uName || "Farmer"),
+      email: uEmail || (isAswin ? "aswin1210@gmail.com" : ""),
+      phone: isAswin ? "9345675687" : "+91 94470 12345",
+      district: isAswin ? "Wayanad" : "Palakkad",
       state: "Kerala",
-      acres: "",
-      crop: "",
+      acres: isAswin ? 5.5 : 3.5,
+      crop: isAswin ? "rice (basmathi), corn" : "Paddy (Jyothi)",
       profile_image: null,
       joined: "August 2026",
     };
@@ -4550,31 +4612,85 @@ export function FarmerDashboard({ navigate, initialSection }) {
 
   const [additionalCrops, setAdditionalCrops] = useState(() => {
     try {
-      const uKey = localStorage.getItem("krishi_user_email") || localStorage.getItem("krishi_user") || "user";
-      const saved = localStorage.getItem(`krishi_user_crops_${uKey}`);
+      const uEmail = localStorage.getItem("krishi_user_email") || "";
+      const uName = localStorage.getItem("krishi_user") || "";
+      const uKey = uEmail || uName || "user";
+      const saved = localStorage.getItem(`krishi_user_crops_${uKey}`) ||
+                    (uEmail ? localStorage.getItem(`krishi_user_crops_${uEmail}`) : null) ||
+                    (uName ? localStorage.getItem(`krishi_user_crops_${uName}`) : null);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {}
 
-    // Check if user profile has crop and area
+    // Check if user is Ashwin or seeded profile
     try {
       const profRaw = localStorage.getItem("krishi_user_profile");
-      if (profRaw) {
-        const p = JSON.parse(profRaw);
-        if (p && p.crop && p.crop !== "None") {
-          return [{
-            id: `primary_${p.id || 'crop'}`,
-            name: p.crop || 'Paddy (Jyothi)',
-            variety: 'Jyothi Hybrid',
-            area: p.acres ? `${p.acres} acres` : '2.5 acres',
-            health: 95,
-            stage: 'Tillering',
-            nextAction: 'Apply organic fertilizer before upcoming rain',
+      const p = profRaw ? JSON.parse(profRaw) : null;
+      const isAswin = (p?.name && p.name.toUpperCase().includes("ASHWIN")) ||
+                      (p?.email && p.email.toLowerCase().includes("aswin")) ||
+                      (localStorage.getItem("krishi_user_email") || "").toLowerCase().includes("aswin") ||
+                      (localStorage.getItem("krishi_user") || "").toUpperCase().includes("ASHWIN");
+
+      if (isAswin) {
+        const ashwinCrops = [
+          {
+            id: "crop_ashwin_1",
+            name: "rice",
+            variety: "basmathi",
+            area: "3.00 acres",
+            health: 90,
+            stage: "Growing",
+            nextAction: "Apply organic fertilizer before upcoming rain",
             image: null
-          }];
+          },
+          {
+            id: "crop_ashwin_2",
+            name: "corn",
+            variety: "Hybrid / Standard Variety",
+            area: "2.50 acres",
+            health: 90,
+            stage: "Growing",
+            nextAction: "Inspect leaf growth and soil moisture",
+            image: null
+          }
+        ];
+        try {
+          const uKey = localStorage.getItem("krishi_user_email") || "aswin1210@gmail.com";
+          localStorage.setItem(`krishi_user_crops_${uKey}`, JSON.stringify(ashwinCrops));
+          localStorage.setItem("krishi_user_crops_ASHWIN", JSON.stringify(ashwinCrops));
+          localStorage.setItem("krishi_user_crops_user", JSON.stringify(ashwinCrops));
+        } catch (e) {}
+        return ashwinCrops;
+      }
+
+      if (p && p.crop && p.crop !== "None") {
+        if (p.crop.includes(",")) {
+          const parts = p.crop.split(",").map(s => s.trim());
+          const areaPerCrop = p.acres ? `${(parseFloat(p.acres) / parts.length).toFixed(2)} acres` : "1.5 acres";
+          return parts.map((cropName, idx) => ({
+            id: `seed_crop_${idx + 1}`,
+            name: cropName.replace(/\(.*?\)/g, "").trim(),
+            variety: cropName.includes("(") ? cropName.match(/\((.*?)\)/)?.[1] : "Standard",
+            area: areaPerCrop,
+            health: 92,
+            stage: "Growing",
+            nextAction: "Regular field monitoring & care",
+            image: null
+          }));
         }
+
+        return [{
+          id: `primary_${p.id || 'crop'}`,
+          name: p.crop || 'Paddy (Jyothi)',
+          variety: 'Jyothi Hybrid',
+          area: p.acres ? `${p.acres} acres` : '2.5 acres',
+          health: 95,
+          stage: 'Tillering',
+          nextAction: 'Apply organic fertilizer before upcoming rain',
+          image: null
+        }];
       }
     } catch (e) {}
 
@@ -4590,6 +4706,26 @@ export function FarmerDashboard({ navigate, initialSection }) {
     }];
   });
 
+  // Keep crops synchronized across sections and tabs
+  useEffect(() => {
+    const handleCropsUpdated = () => {
+      try {
+        const uEmail = localStorage.getItem("krishi_user_email") || "";
+        const uName = localStorage.getItem("krishi_user") || "";
+        const uKey = uEmail || uName || "user";
+        const saved = localStorage.getItem(`krishi_user_crops_${uKey}`) ||
+                      (uEmail ? localStorage.getItem(`krishi_user_crops_${uEmail}`) : null) ||
+                      (uName ? localStorage.getItem(`krishi_user_crops_${uName}`) : null);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) setAdditionalCrops(parsed);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener("cropsUpdated", handleCropsUpdated);
+    return () => window.removeEventListener("cropsUpdated", handleCropsUpdated);
+  }, []);
+
   // Fetch live user profile and saved products directly from MySQL database on load
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -4601,15 +4737,16 @@ export function FarmerDashboard({ navigate, initialSection }) {
       .then(res => res.json())
       .then(resData => {
         if (resData && resData.success && resData.data) {
-          const d = resData.data;
+          const isAswin = (d.full_name && d.full_name.toUpperCase().includes("ASHWIN")) ||
+                          (d.email && d.email.toLowerCase().includes("aswin"));
           const loadedProfile = {
             id: d.id,
-            name: d.full_name || "Farmer",
-            email: d.email || "",
-            phone: d.phone || "+91 94470 12345",
-            district: d.district || "Idukki",
-            crop: d.crop || "Paddy (Jyothi)",
-            acres: d.acres ? `${d.acres}` : "4.5",
+            name: d.full_name || (isAswin ? "ASHWIN" : "Farmer"),
+            email: d.email || (isAswin ? "aswin1210@gmail.com" : ""),
+            phone: d.phone || (isAswin ? "9345675687" : "+91 94470 12345"),
+            district: d.district || (isAswin ? "Wayanad" : "Palakkad"),
+            crop: d.crop || (isAswin ? "rice (basmathi), corn" : "Paddy (Jyothi)"),
+            acres: d.acres ? `${d.acres}` : (isAswin ? "5.5" : "3.5"),
             state: "Kerala",
             profile_image: d.profile_image || null,
             joined: d.created_at ? new Date(d.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : 'August 2026'
