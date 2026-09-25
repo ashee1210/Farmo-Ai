@@ -483,22 +483,44 @@ app.delete('/api/admin/contact-messages/:id', async (req, res) => {
 // Farmer notification feed endpoint (for Farmer Portal top bell)
 app.get('/api/notifications', async (req, res) => {
   try {
-    const { district, crop } = req.query;
-    let rows = [];
-    if (district || crop) {
-      rows = await query(
-        `SELECT * FROM admin_notifications 
-         WHERE target_audience = 'all' 
-            OR (target_audience = 'district' AND LOWER(target_value) = LOWER(?))
-            OR (target_audience = 'crop' AND LOWER(target_value) = LOWER(?))
-         ORDER BY created_at DESC LIMIT 30`,
-        [district || '', crop || '']
-      );
-    } else {
-      rows = await query('SELECT * FROM admin_notifications ORDER BY created_at DESC LIMIT 30');
-    }
-    res.json({ success: true, data: rows });
+    const { district = '', crop = '', user_id = '', user_email = '', user_name = '' } = req.query;
+    
+    const trimmedEmail = (user_email || '').trim().toLowerCase();
+    const trimmedId = (user_id || '').trim();
+    const trimmedName = (user_name || '').trim().toLowerCase();
+    const trimmedDistrict = (district || '').trim().toLowerCase();
+    const trimmedCrop = (crop || '').trim().toLowerCase();
+
+    const sql = `
+      SELECT * FROM admin_notifications 
+      WHERE target_audience = 'all' 
+         OR target_audience IS NULL
+         OR (target_audience IN ('user', 'farmer') AND (
+              (LENGTH(?) > 0 AND LOWER(target_value) = ?) OR 
+              (LENGTH(?) > 0 AND target_value = ?) OR 
+              (LENGTH(?) > 0 AND LOWER(target_value) = ?)
+            ))
+         OR (target_audience = 'district' AND LENGTH(?) > 0 AND LOWER(target_value) = ?)
+         OR (target_audience = 'crop' AND LENGTH(?) > 0 AND (
+              LOWER(?) LIKE CONCAT('%', LOWER(target_value), '%') OR
+              LOWER(target_value) LIKE CONCAT('%', LOWER(?), '%')
+            ))
+      ORDER BY created_at DESC 
+      LIMIT 50
+    `;
+
+    const params = [
+      trimmedEmail, trimmedEmail,
+      trimmedId, trimmedId,
+      trimmedName, trimmedName,
+      trimmedDistrict, trimmedDistrict,
+      trimmedCrop, trimmedCrop, trimmedCrop
+    ];
+
+    const rows = await query(sql, params);
+    res.json({ success: true, data: rows || [] });
   } catch (error) {
+    console.error('Fetch notifications error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

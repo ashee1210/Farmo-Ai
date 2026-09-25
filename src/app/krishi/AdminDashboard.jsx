@@ -3611,6 +3611,8 @@ function NotificationsSection() {
     target_value: "",
   });
 
+  const [farmersList, setFarmersList] = useState([]);
+
   const loadNotifications = async () => {
     setLoading(true);
     try {
@@ -3626,6 +3628,13 @@ function NotificationsSection() {
 
   useEffect(() => {
     loadNotifications();
+    getFarmerList({ limit: 100 })
+      .then(res => {
+        if (res && res.success && Array.isArray(res.data)) {
+          setFarmersList(res.data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleSendBroadcast = async (e) => {
@@ -3636,6 +3645,18 @@ function NotificationsSection() {
     }
     if (!form.message.trim()) {
       toast.error("Please enter notification details.");
+      return;
+    }
+    if (form.target_audience === "user" && !form.target_value) {
+      toast.error("Please select a specific farmer / user to notify.");
+      return;
+    }
+    if (form.target_audience === "district" && !form.target_value) {
+      toast.error("Please select a target district.");
+      return;
+    }
+    if (form.target_audience === "crop" && !form.target_value) {
+      toast.error("Please select a target crop.");
       return;
     }
 
@@ -3655,7 +3676,11 @@ function NotificationsSection() {
       });
 
       if (res && res.success) {
-        toast.success("Notification broadcasted to farmers successfully!");
+        toast.success(
+          form.target_audience === "user"
+            ? `Notification sent directly to ${form.target_value} in real-time!`
+            : "Notification broadcasted to all farmers in real-time!"
+        );
         setForm({
           title: "",
           message: "",
@@ -3823,10 +3848,32 @@ function NotificationsSection() {
                   className="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold text-[#132B1A] outline-none focus:border-[#1B5E38]"
                 >
                   <option value="all">🌐 Broadcast to All Farmers</option>
+                  <option value="user">👤 Specific Farmer / User</option>
                   <option value="district">📍 Specific District</option>
                   <option value="crop">🌾 Specific Crop Growers</option>
                 </select>
               </div>
+
+              {form.target_audience === "user" && (
+                <div>
+                  <label className="block text-xs font-bold text-[#5A6B58] uppercase tracking-wider mb-1.5">
+                    Select Target Farmer / User
+                  </label>
+                  <select
+                    value={form.target_value}
+                    onChange={e => setForm({ ...form, target_value: e.target.value })}
+                    required
+                    className="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold text-[#132B1A] outline-none focus:border-[#1B5E38]"
+                  >
+                    <option value="">-- Choose Registered Farmer / User --</option>
+                    {farmersList.map(f => (
+                      <option key={f.email || f.id} value={f.email}>
+                        {f.name} ({f.email}) · {f.district || f.location || "Kerala"} · {f.crop || "Crops"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {form.target_audience === "district" && (
                 <div>
@@ -3976,8 +4023,12 @@ function NotificationsSection() {
                             {item.priority || "Normal"}
                           </span>
 
-                          <span className="text-[10px] font-semibold text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
-                            🎯 {item.target_audience === "all" ? "All Farmers" : `${item.target_audience}: ${item.target_value}`}
+                          <span className="text-[10px] font-semibold text-gray-600 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                            {item.target_audience === "all" || !item.target_audience ? "🌐 All Farmers" :
+                             item.target_audience === "user" || item.target_audience === "farmer" ? `👤 User: ${item.target_value}` :
+                             item.target_audience === "district" ? `📍 District: ${item.target_value}` :
+                             item.target_audience === "crop" ? `🌾 Crop: ${item.target_value}` :
+                             `🎯 ${item.target_audience}: ${item.target_value}`}
                           </span>
                         </div>
 

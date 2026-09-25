@@ -1,4 +1,4 @@
-﻿import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import {
   Leaf, Home, Tractor, BarChart2, TrendingUp, CloudRain, Bot, FileText,
   User, LogOut, Menu, Bell, Activity, Sun, Droplets, AlertTriangle,
@@ -12,6 +12,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { PricingPage } from "./PricingPage.jsx";
 import { farmCrops, sampleChat, weatherForecast, marketCrops, analyticsData } from "./data.js";
 import { checkOllamaConnection, askOllama, analyzeCropDiseaseWithOllama } from "../services/ollamaService.js";
+import { getFarmerNotifications } from "../../services/adminService.js";
 
 const SIDEBAR = [
   { key: "dashboard", icon: Home, label: "Dashboard" },
@@ -34,39 +35,65 @@ function Layout({ section, setSection, sideOpen, setSideOpen, navigate, userProf
   const [showNotifications, setShowNotifications] = useState(false);
   const userNotifKey = `krishi_read_notifs_${userProfile?.email || 'default'}`;
 
-  const [notifications, setNotifications] = useState([
-    { id: "def-1", title: "Weather Advisory", message: "Monsoon showers active across Kerala. Ensure drainage channels are clear.", time: "Recent", read: false, category: "Weather", priority: "Normal" },
-    { id: "def-2", title: "Mandi Price Intelligence", message: "Live crop rates updated for all Kerala agricultural markets.", time: "1 hr ago", read: false, category: "Market", priority: "Normal" },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  const fetchLiveNotifications = useCallback(async () => {
+    try {
+      const readIds = new Set(JSON.parse(localStorage.getItem(userNotifKey) || "[]"));
+      const res = await getFarmerNotifications({
+        user_id: userProfile?.id,
+        user_email: userProfile?.email,
+        user_name: userProfile?.name,
+        district: userProfile?.district,
+        crop: userProfile?.crop,
+      });
+
+      if (res && res.success && Array.isArray(res.data)) {
+        const liveList = res.data.map(item => ({
+          id: item.id,
+          title: item.title,
+          message: item.message,
+          time: item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (item.time || "Just now"),
+          read: readIds.has(item.id),
+          category: item.category || "Advisory",
+          priority: item.priority || "Normal",
+          sender_admin: item.sender_admin || "Admin Administrator",
+          target_audience: item.target_audience || "all",
+          target_value: item.target_value || "",
+        }));
+        setNotifications(liveList);
+      }
+    } catch (e) {
+      console.warn("Notifications load error:", e);
+    }
+  }, [userProfile?.id, userProfile?.email, userProfile?.name, userProfile?.district, userProfile?.crop, userNotifKey]);
 
   useEffect(() => {
-    let isMounted = true;
-    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-    const district = userProfile?.district || "";
-    const crop = userProfile?.crop || "";
+    fetchLiveNotifications();
 
-    const readIds = new Set(JSON.parse(localStorage.getItem(userNotifKey) || "[]"));
+    // 1. Active real-time polling every 3 seconds
+    const interval = setInterval(fetchLiveNotifications, 3000);
 
-    fetch(`${apiBase}/notifications?district=${encodeURIComponent(district)}&crop=${encodeURIComponent(crop)}`)
-      .then(res => res.json())
-      .then(resData => {
-        if (isMounted && resData && resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
-          const liveList = resData.data.map(item => ({
-            id: item.id,
-            title: item.title,
-            message: item.message,
-            time: item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
-            read: readIds.has(item.id),
-            category: item.category || "Advisory",
-            priority: item.priority || "Normal"
-          }));
-          setNotifications(liveList);
-        }
-      })
-      .catch(() => {});
+    // 2. Real-time cross-tab trigger (when admin broadcasts from another browser tab)
+    const handleStorage = (e) => {
+      if (e.key === "krishi_last_broadcast_ts" || e.key === "krishi_admin_broadcast_notifications") {
+        fetchLiveNotifications();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
 
-    return () => { isMounted = false; };
-  }, [userProfile?.district, userProfile?.crop, userProfile?.email]);
+    // 3. Real-time same-window custom event trigger
+    const handleCustom = () => {
+      fetchLiveNotifications();
+    };
+    window.addEventListener("krishi_notification_sent", handleCustom);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("krishi_notification_sent", handleCustom);
+    };
+  }, [fetchLiveNotifications]);
 
   const markAllAsRead = () => {
     const allIds = notifications.map(n => n.id);
@@ -240,6 +267,12 @@ function Layout({ section, setSection, sideOpen, setSideOpen, navigate, userProf
                                   {item.priority}
                                 </span>
                               )}
+
+                              {(item.target_audience === "user" || item.target_audience === "farmer") && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-700 text-white">
+                                  Direct to You
+                                </span>
+                              )}
                             </div>
 
                             <button
@@ -254,7 +287,7 @@ function Layout({ section, setSection, sideOpen, setSideOpen, navigate, userProf
                           <div className="text-xs font-bold text-[#132B1A]">{item.title}</div>
                           <div className="text-xs text-[#5A6B58] mt-0.5 leading-relaxed">{item.message}</div>
                           <div className="text-[10px] text-gray-400 mt-1.5 flex items-center justify-between">
-                            <span>{item.time}</span>
+                            <span>{item.sender_admin ? `From ${item.sender_admin}` : item.time} · {item.time}</span>
                             {!item.read && <span className="text-emerald-700 font-bold text-[10px]">● New</span>}
                           </div>
                         </div>

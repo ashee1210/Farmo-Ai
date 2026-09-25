@@ -767,8 +767,8 @@ export async function getAdminBroadcastNotifications() {
   } catch (e) {}
 
   const defaultNotifs = [
-    { id: "bn_1", title: "Monsoon Crop Drainage Advisory", message: "Heavy rainfall expected across Palakkad, Thrissur and Wayanad. Ensure agricultural drainage ditches are cleared.", priority: "Urgent", target_crop: "Paddy", target_district: "Kerala", created_at: "2026-09-22 07:00:00" },
-    { id: "bn_2", title: "Mandi Minimum Support Price Update", message: "Paddy procurement rates updated to ₹2,820/quintal at all civil supplies mandis.", priority: "Normal", target_crop: "All", target_district: "Kerala", created_at: "2026-09-21 11:30:00" },
+    { id: "bn_1", title: "Monsoon Crop Drainage Advisory", message: "Heavy rainfall expected across Palakkad, Thrissur and Wayanad. Ensure agricultural drainage ditches are cleared.", priority: "Urgent", category: "Weather", target_audience: "all", target_crop: "Paddy", target_district: "Kerala", created_at: "2026-09-22 07:00:00" },
+    { id: "bn_2", title: "Mandi Minimum Support Price Update", message: "Paddy procurement rates updated to ₹2,820/quintal at all civil supplies mandis.", priority: "Normal", category: "Market", target_audience: "all", target_crop: "All", target_district: "Kerala", created_at: "2026-09-21 11:30:00" },
   ];
 
   const map = new Map();
@@ -780,12 +780,15 @@ export async function getAdminBroadcastNotifications() {
 
 export async function sendAdminBroadcastNotification(notificationData) {
   const newNotif = {
-    id: `bn_${Date.now()}`,
+    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     title: notificationData.title?.trim() || "Agricultural Broadcast",
     message: notificationData.message?.trim() || "",
+    category: notificationData.category || "Advisory",
     priority: notificationData.priority || "Normal",
-    target_crop: notificationData.target_crop || "All",
-    target_district: notificationData.target_district || "Kerala",
+    target_audience: notificationData.target_audience || "all",
+    target_value: notificationData.target_value || "",
+    sender_admin: notificationData.sender_admin || "Admin Administrator",
+    status: "active",
     created_at: new Date().toISOString()
   };
 
@@ -794,6 +797,13 @@ export async function sendAdminBroadcastNotification(notificationData) {
     const list = raw ? JSON.parse(raw) : [];
     list.unshift(newNotif);
     localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(list));
+    // Trigger real-time cross-tab storage event
+    localStorage.setItem("krishi_last_broadcast_ts", Date.now().toString());
+  } catch (e) {}
+
+  // Trigger same-tab instant event
+  try {
+    window.dispatchEvent(new CustomEvent("krishi_notification_sent", { detail: newNotif }));
   } catch (e) {}
 
   const result = await fetchApi("/admin/notifications", {
@@ -802,7 +812,103 @@ export async function sendAdminBroadcastNotification(notificationData) {
   });
 
   if (result && result.success) return { success: true, message: result.message, data: result.data };
-  return { success: true, message: "Broadcast notification dispatched to all farmers!", data: newNotif };
+  return { success: true, message: "Broadcast notification dispatched to farmers!", data: newNotif };
+}
+
+/**
+ * Fetch and filter notifications specifically for a logged-in farmer/user in real-time
+ */
+export async function getFarmerNotifications({ user_id = '', user_email = '', user_name = '', district = '', crop = '' } = {}) {
+  const queryParams = new URLSearchParams();
+  if (user_id) queryParams.set("user_id", user_id);
+  if (user_email) queryParams.set("user_email", user_email);
+  if (user_name) queryParams.set("user_name", user_name);
+  if (district) queryParams.set("district", district);
+  if (crop) queryParams.set("crop", crop);
+
+  const qs = queryParams.toString();
+  const endpoint = qs ? `/notifications?${qs}` : "/notifications";
+  const result = await fetchApi(endpoint);
+
+  // Local helper to test whether a notification targets this user
+  const matchesUser = (notif) => {
+    const aud = (notif.target_audience || "all").toLowerCase();
+    // Admin internal messages should never show in farmer portal
+    if (aud === "admin") return false;
+    // Broadcast to all farmers
+    if (aud === "all" || !aud) return true;
+
+    const targetVal = String(notif.target_value || "").trim().toLowerCase();
+    const uEmail = String(user_email || "").trim().toLowerCase();
+    const uId = String(user_id || "").trim();
+    const uName = String(user_name || "").trim().toLowerCase();
+    const uDist = String(district || "").trim().toLowerCase();
+    const uCrop = String(crop || "").trim().toLowerCase();
+
+    // Specific farmer/user target
+    if (aud === "user" || aud === "farmer") {
+      if (!targetVal) return true;
+      return (
+        (uEmail && targetVal === uEmail) ||
+        (uId && String(notif.target_value) === uId) ||
+        (uName && targetVal === uName) ||
+        (uEmail && targetVal.includes(uEmail)) ||
+        (uName && uName.includes(targetVal))
+      );
+    }
+
+    // Specific district target
+    if (aud === "district") {
+      if (!targetVal) return true;
+      return Boolean(uDist && (uDist === targetVal || uDist.includes(targetVal) || targetVal.includes(uDist)));
+    }
+
+    // Specific crop target
+    if (aud === "crop") {
+      if (!targetVal) return true;
+      return Boolean(uCrop && (uCrop === targetVal || uCrop.includes(targetVal) || targetVal.includes(uCrop)));
+    }
+
+    return false;
+  };
+
+  const map = new Map();
+
+  // 1. If backend returned matching records from MySQL database
+  if (result && result.success && Array.isArray(result.data)) {
+    result.data.forEach(item => {
+      if (matchesUser(item)) {
+        map.set(item.id, item);
+      }
+    });
+  }
+
+  // 2. Also merge local storage notifications (ensures instant local/Vercel synchronization across tabs)
+  try {
+    const raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+    if (raw) {
+      const localList = JSON.parse(raw);
+      if (Array.isArray(localList)) {
+        localList.forEach(item => {
+          if (matchesUser(item) && !map.has(item.id)) {
+            map.set(item.id, item);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  // 3. Fallback defaults if no notifications exist yet
+  if (map.size === 0) {
+    const defaults = [
+      { id: "def-1", title: "Weather Advisory", message: "Monsoon showers active across Kerala. Ensure drainage channels are clear.", time: "Recent", created_at: new Date().toISOString(), read: false, category: "Weather", priority: "Normal", target_audience: "all" },
+      { id: "def-2", title: "Mandi Price Intelligence", message: "Live crop rates updated for all Kerala agricultural markets.", time: "1 hr ago", created_at: new Date(Date.now() - 3600000).toISOString(), read: false, category: "Market", priority: "Normal", target_audience: "all" },
+    ];
+    defaults.forEach(d => map.set(d.id, d));
+  }
+
+  const list = Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  return { success: true, data: list };
 }
 
 export async function deleteAdminBroadcastNotification(id) {
