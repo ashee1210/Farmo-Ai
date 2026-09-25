@@ -53,6 +53,48 @@ export function RegisterPage({ onLogin, onBack }) {
     if (form.password !== form.confirm) { setError("Passwords do not match."); return; }
     setError("");
 
+    const trimmedEmail = form.email.trim().toLowerCase();
+    const newUserObj = {
+      id: `u_${Date.now()}`,
+      name: form.name.trim(),
+      email: trimmedEmail,
+      password: form.password,
+      phone: form.phone || "+91 94470 12345",
+      district: form.district || "Palakkad",
+      crop: form.primaryCrop || "Paddy (Jyothi)",
+      acres: form.farmSize || "4.5",
+      role: "farmer"
+    };
+
+    const saveOfflineUserAndProceed = () => {
+      let registeredUsers = [];
+      try {
+        registeredUsers = JSON.parse(localStorage.getItem("krishi_registered_users") || "[]");
+      } catch (e) {}
+
+      // Check if email already registered locally
+      const existing = registeredUsers.find(u => u.email?.trim().toLowerCase() === trimmedEmail);
+      if (existing) {
+        setError(`Email '${trimmedEmail}' is already registered. Please go to login.`);
+        return false;
+      }
+
+      registeredUsers.push(newUserObj);
+      try {
+        localStorage.setItem("krishi_registered_users", JSON.stringify(registeredUsers));
+      } catch (e) {}
+
+      localStorage.setItem("krishi_token", `jwt_${newUserObj.id}`);
+      localStorage.setItem("krishi_user_email", trimmedEmail);
+      localStorage.setItem("krishi_user", newUserObj.name);
+      localStorage.setItem("krishi_user_profile", JSON.stringify(newUserObj));
+      setSubmitted(true);
+      setTimeout(() => {
+        if (onLogin) onLogin();
+      }, 2200);
+      return true;
+    };
+
     try {
       const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
       const res = await fetch(`${apiBase}/auth/register`, {
@@ -60,7 +102,7 @@ export function RegisterPage({ onLogin, onBack }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          email: form.email.trim().toLowerCase(),
+          email: trimmedEmail,
           password: form.password,
           phone: form.phone,
           district: form.district,
@@ -71,26 +113,30 @@ export function RegisterPage({ onLogin, onBack }) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        localStorage.setItem("krishi_user_email", form.email.trim().toLowerCase());
+        // Also sync to local registry
+        let registeredUsers = [];
+        try {
+          registeredUsers = JSON.parse(localStorage.getItem("krishi_registered_users") || "[]");
+        } catch (e) {}
+        if (!registeredUsers.some(u => u.email?.trim().toLowerCase() === trimmedEmail)) {
+          registeredUsers.push(newUserObj);
+          localStorage.setItem("krishi_registered_users", JSON.stringify(registeredUsers));
+        }
+
+        localStorage.setItem("krishi_user_email", trimmedEmail);
         localStorage.setItem("krishi_user", form.name);
-        localStorage.setItem("krishi_user_profile", JSON.stringify({
-          name: form.name,
-          email: form.email.trim().toLowerCase(),
-          phone: form.phone || "+91 94470 12345",
-          district: form.district,
-          crop: form.primaryCrop || "Paddy (Jyothi)",
-          acres: form.farmSize || "4.5",
-          role: "farmer"
-        }));
+        localStorage.setItem("krishi_user_profile", JSON.stringify(newUserObj));
         setSubmitted(true);
         setTimeout(() => {
           if (onLogin) onLogin();
         }, 2200);
       } else {
+        // If server is up and explicitly rejected duplicate
         setError(data.error || "User with this name or email already exists in database.");
       }
     } catch (err) {
-      setError("Could not reach the database server. Ensure 'npm run server' is running.");
+      // Offline / Vercel cloud environment: gracefully persist in localStorage
+      saveOfflineUserAndProceed();
     }
   };
 
