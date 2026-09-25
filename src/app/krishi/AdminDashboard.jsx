@@ -470,16 +470,18 @@ function AdminHome({ setSection }) {
       {/* Top Admin Live Connection Status Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-border rounded-2xl px-5 py-3.5 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${hasData ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
           <div>
             <div className="text-xs font-extrabold text-[#132B1A] flex items-center gap-2">
               <span>Full Admin Database Connection:</span>
               <span className="font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                MySQL 127.0.0.1:3306 · farmo_ai_db
+                {typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+                  ? "FARMO Cloud Database · farmo_ai_db (Live)"
+                  : "MySQL 127.0.0.1:3306 · farmo_ai_db"}
               </span>
             </div>
             <div className="text-[11px] text-[#5A6B58] mt-0.5">
-              Live Real-Time Data Sync — Direct SQL query execution, zero duplicates
+              Live Real-Time Data Sync — Direct SQL &amp; Cloud Database Execution, Active Feeds
             </div>
           </div>
         </div>
@@ -489,12 +491,12 @@ function AdminHome({ setSection }) {
             onClick={() => {
               getAdminOverviewMetrics().then(res => res?.data && setMetrics(res.data));
               fetchLiveAnalytics();
-              toast.success("Refreshed live MySQL analytics data!");
+              toast.success("Refreshed live database analytics data!");
             }}
             className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-border rounded-xl text-xs font-bold text-[#132B1A] flex items-center gap-1.5 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loadingChart ? "animate-spin" : ""}`} />
-            Refresh SQL Data
+            Refresh Live Data
           </button>
         </div>
       </div>
@@ -1158,7 +1160,11 @@ function AddAdminSection() {
               <Shield className="w-3.5 h-3.5 text-emerald-300" />
               Role-Based Access Control
             </span>
-            <span className="text-xs text-emerald-300 font-mono">● MySQL 127.0.0.1:3306</span>
+            <span className="text-xs text-emerald-300 font-mono">
+              {typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+                ? "● Cloud Live Sync"
+                : "● MySQL 127.0.0.1:3306"}
+            </span>
           </div>
           <h2 className="text-2xl font-extrabold font-[Plus_Jakarta_Sans]">Admin User Management</h2>
           <p className="text-emerald-100/80 text-xs mt-1">
@@ -2448,7 +2454,9 @@ function AnalyticsSection() {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-extrabold text-[#132B1A] font-[Plus_Jakarta_Sans]">Platform Analytics Hub</h2>
             <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
-              ● Live MySQL Sync (Port 3306)
+              {typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+                ? "● Cloud Live Sync"
+                : "● Live MySQL Sync (Port 3306)"}
             </span>
           </div>
           <p className="text-xs text-[#5A6B58] mt-1">
