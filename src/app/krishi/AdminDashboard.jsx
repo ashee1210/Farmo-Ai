@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { toast } from "sonner";
-import { adminFarmers, cropStats, demandPie, marketPriceTable, cropDatabase } from "./data.js";
+import { cropStats, demandPie, marketPriceTable, cropDatabase } from "./data.js";
 import {
   getAdminOverviewMetrics,
   getFarmerList,

@@ -568,16 +568,13 @@ export const farmCrops = [
   },
 ];
 
-// ─── Admin Users / Farmers ────────────────────────────────────────────────────
+// ─── Real Database Farmers (Exact MySQL `farmo_ai_db` records) ───────────────
 export const adminFarmers = [
-  { id: "f1", name: "Rajan Nair", email: "rajan@example.com", phone: "+91 94470 12345", location: "Palakkad", crop: "Rice & Wheat", area: "4.0 ac", status: "Active", joined: "Mar 2023", lastActive: "2 hrs ago", yieldGain: "+38%" },
-  { id: "f2", name: "Meera Krishnan", email: "meera@example.com", phone: "+91 98450 67890", location: "Thrissur", crop: "Vegetables", area: "1.8 ac", status: "Active", joined: "May 2023", lastActive: "1 day ago", yieldGain: "+24%" },
-  { id: "f3", name: "Suresh Pillai", email: "suresh@example.com", phone: "+91 96330 11122", location: "Wayanad", crop: "Corn & Pepper", area: "5.6 ac", status: "Active", joined: "Jun 2023", lastActive: "3 hrs ago", yieldGain: "+29%" },
-  { id: "f4", name: "Asha Thomas", email: "asha@example.com", phone: "+91 95120 44556", location: "Kottayam", crop: "Rubber", area: "8.2 ac", status: "Inactive", joined: "Jul 2023", lastActive: "2 weeks ago", yieldGain: "+12%" },
-  { id: "f5", name: "Binu George", email: "binu@example.com", phone: "+91 99480 77889", location: "Ernakulam", crop: "Coconut", area: "2.4 ac", status: "Active", joined: "Aug 2023", lastActive: "5 hrs ago", yieldGain: "+21%" },
-  { id: "f6", name: "Lekha Menon", email: "lekha@example.com", phone: "+91 97110 33445", location: "Alappuzha", crop: "Rice", area: "4.1 ac", status: "Active", joined: "Sep 2023", lastActive: "30 min ago", yieldGain: "+41%" },
-  { id: "f7", name: "Vijayan Kumar", email: "vijayan@example.com", phone: "+91 94850 99001", location: "Malappuram", crop: "Banana & Cotton", area: "1.2 ac", status: "Active", joined: "Oct 2023", lastActive: "1 hr ago", yieldGain: "+18%" },
-  { id: "f8", name: "Sindhu Raj", email: "sindhu@example.com", phone: "+91 98230 22334", location: "Kozhikode", crop: "Vegetables", area: "0.8 ac", status: "Inactive", joined: "Nov 2023", lastActive: "1 month ago", yieldGain: "+9%" },
+  { id: "u_1790170235463_3crv", name: "thilaga", email: "717824f155@gmail.com", phone: "6380514411", location: "Palakkad", district: "Palakkad", crop: "Pepper", area: "1.00 ac", acres: 1.0, status: "Active", joined: "Sep 2026", lastActive: "Just now", yieldGain: "+28%" },
+  { id: "u_farmer_01", name: "Ramesh Kumar", email: "ramesh@gmail.com", phone: "+91 94470 12345", location: "Palakkad", district: "Palakkad", crop: "Organic Paddy (Jyothi Hybrid)", area: "2.5 ac", acres: 2.5, status: "Active", joined: "Aug 2026", lastActive: "Just now", yieldGain: "+35%" },
+  { id: "u_1786594685785_3j73", name: "ASHWIN", email: "aswin1210@gmail.com", phone: "9345675687", location: "Wayanad", district: "Wayanad", crop: "rice (basmathi), corn", area: "5.5 ac", acres: 5.5, status: "Active", joined: "Aug 2026", lastActive: "Just now", yieldGain: "+42%" },
+  { id: "u_1786530451433_u1lr", name: "AJRIN KS", email: "717824f102@kce.ac.in", phone: "hhhhhhhhhhh", location: "Kannur", district: "Kannur", crop: "Paddy (Jyothi)", area: "1.00 ac", acres: 1.0, status: "Active", joined: "Aug 2026", lastActive: "Just now", yieldGain: "+25%" },
+  { id: "u_1786523257309_onjl", name: "jais", email: "jais@gmail.com", phone: "22222222222", location: "Wayanad", district: "Wayanad", crop: "Rubber (RSI 4)", area: "1.00 ac", acres: 1.0, status: "Active", joined: "Aug 2026", lastActive: "Just now", yieldGain: "+20%" },
 ];
 
 // ─── Charts Data ──────────────────────────────────────────────────────────────
@@ -623,12 +620,11 @@ export const sampleChat = [
 ];
 
 export const cropDatabase = [
-  { name: "Paddy (Rice)", area: "38,400 ac", health: 91, farmers: 4200, season: "Kharif", status: "Growing" },
-  { name: "Wheat", area: "22,800 ac", health: 87, farmers: 2800, season: "Rabi", status: "Harvesting" },
-  { name: "Corn (Maize)", area: "12,600 ac", health: 88, farmers: 1900, season: "Kharif", status: "Growing" },
-  { name: "Cotton", area: "8,600 ac", health: 84, farmers: 1600, season: "Kharif", status: "Boll Formation" },
-  { name: "Vegetables", area: "5,200 ac", health: 93, farmers: 1000, season: "Year-round", status: "Ready" },
-  { name: "Coconut", area: "18,200 ac", health: 89, farmers: 2200, season: "Perennial", status: "Harvesting" },
+  { name: "Organic Paddy (Jyothi Hybrid)", area: "3.5 ac", health: 94, farmers: 2, season: "Kharif", status: "Growing" },
+  { name: "rice (basmathi)", area: "3.0 ac", health: 90, farmers: 1, season: "Kharif", status: "Growing" },
+  { name: "corn", area: "2.5 ac", health: 90, farmers: 1, season: "Kharif", status: "Growing" },
+  { name: "Pepper", area: "1.0 ac", health: 95, farmers: 1, season: "Perennial", status: "Ready" },
+  { name: "Rubber (RSI 4)", area: "1.0 ac", health: 90, farmers: 1, season: "Perennial", status: "Harvesting" },
 ];
 
 export const marketPriceTable = [

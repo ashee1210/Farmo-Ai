@@ -16,11 +16,12 @@ export function KrishiLoginPage({ navigate }) {
   const ADMIN_PASSWORD = "admin@123";
 
   const SEED_FARMERS = [
+    { email: "aswin1210@gmail.com", pass: "Farmer@123", name: "ASHWIN", district: "Wayanad", crop: "rice (basmathi), corn", acres: 5.5, phone: "9345675687" },
+    { email: "717824f102@kce.ac.in", pass: "Farmer@123", name: "AJRIN KS", district: "Kannur", crop: "Paddy (Jyothi)", acres: 1.0, phone: "+91 94470 12345" },
+    { email: "ramesh@gmail.com", pass: "Farmer@123", name: "Ramesh Kumar", district: "Palakkad", crop: "Organic Paddy (Jyothi Hybrid)", acres: 2.5, phone: "+91 94470 12345" },
+    { email: "717824f155@gmail.com", pass: "Farmer@123", name: "thilaga", district: "Palakkad", crop: "Pepper", acres: 1.0, phone: "6380514411" },
+    { email: "jais@gmail.com", pass: "Farmer@123", name: "jais", district: "Wayanad", crop: "Rubber (RSI 4)", acres: 1.0, phone: "22222222222" },
     { email: "farmer@gmail.com", pass: "Farmer@123", name: "Demo Farmer", district: "Palakkad", crop: "Paddy (Jyothi)", acres: 3.5, phone: "+91 94470 12345" },
-    { email: "aswinks1210@gmail.com", pass: "Farmer@123", name: "Aswin K S", district: "Palakkad", crop: "Paddy (Jyothi)", acres: 4.5, phone: "+91 94470 12345" },
-    { email: "lekha.menon@gmail.com", pass: "Farmer@123", name: "Lekha Menon", district: "Alappuzha", crop: "Rice (Uma)", acres: 4.1, phone: "+91 97110 33445" },
-    { email: "binu.george@gmail.com", pass: "Farmer@123", name: "Binu George", district: "Ernakulam", crop: "Coconut & Banana", acres: 2.4, phone: "+91 99480 77889" },
-    { email: "suresh.kumar@gmail.com", pass: "Farmer@123", name: "Suresh Kumar", district: "Wayanad", crop: "Black Pepper & Coffee", acres: 5.0, phone: "+91 98450 11223" },
   ];
 
   // ── Detect admin email in real-time for conditional UI hints ──
